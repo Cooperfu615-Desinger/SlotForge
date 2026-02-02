@@ -12,8 +12,10 @@
     "vue": "^3.4.0",
     "pinia": "^2.1.7",
     "naive-ui": "^2.38.0",
-    "konva": "^9.3.0",
-    "monaco-editor": "^0.45.0"
+    "konva": "^9.3.6",
+    "vue-konva": "^3.0.2",
+    "monaco-editor": "^0.45.0",
+    "@guolao/vue-monaco-editor": "^1.5.2"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
