@@ -55,9 +55,12 @@ export const useForgeStore = defineStore('forge', () => {
         manifest.value = data
     }
 
-    // Action: Toggle orientation
-    function toggleOrientation() {
-        currentOrientation.value = currentOrientation.value === 'landscape' ? 'portrait' : 'landscape'
+    // Action: Set specific orientation
+    function setOrientation(orientation: Orientation) {
+        currentOrientation.value = orientation
+        if (manifest.value) {
+            manifest.value.meta.orientation = orientation
+        }
     }
 
     // Action: Select element for inspection
@@ -103,7 +106,7 @@ export const useForgeStore = defineStore('forge', () => {
         rhythmSpec,
         loadManifest,
         updateManifest,
-        toggleOrientation,
+        setOrientation,
         selectElement,
         updateElementAsset,
         setTime,

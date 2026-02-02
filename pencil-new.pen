@@ -1,0 +1,38 @@
+{
+  "version": "2.6",
+  "children": [
+    {
+      "type": "frame",
+      "id": "bi8Au",
+      "x": 44,
+      "y": -52,
+      "name": "Frame",
+      "clip": true,
+      "width": 2560,
+      "height": 1440,
+      "fill": "#FFFFFF",
+      "layout": "none",
+      "children": [
+        {
+          "type": "rectangle",
+          "id": "9DRbl",
+          "x": 245,
+          "y": 80,
+          "fill": "#CCCCCC",
+          "width": 720,
+          "height": 1280
+        },
+        {
+          "type": "rectangle",
+          "cornerRadius": 50,
+          "id": "0IlRZ",
+          "x": 1736,
+          "y": 80,
+          "fill": "#CCCCCC",
+          "width": 728,
+          "height": 1253
+        }
+      ]
+    }
+  ]
+}

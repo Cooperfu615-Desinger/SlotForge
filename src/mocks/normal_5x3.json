@@ -22,8 +22,86 @@
     },
     "layout_elements": [
         {
-            "id": "reel_frame",
+            "id": "bg_layer",
             "type": "panel",
+            "name": "Background",
+            "z_index": 0,
+            "anchor": "top-left",
+            "rect_landscape": {
+                "x": 0,
+                "y": 0,
+                "w": 1920,
+                "h": 1080
+            },
+            "rect_portrait": {
+                "x": 0,
+                "y": 0,
+                "w": 1080,
+                "h": 1920
+            }
+        },
+        {
+            "id": "top_bar_group",
+            "type": "panel",
+            "name": "Top Bar Group",
+            "z_index": 5,
+            "anchor": "top-left",
+            "rect_landscape": {
+                "x": 0,
+                "y": 0,
+                "w": 1920,
+                "h": 200
+            },
+            "rect_portrait": {
+                "x": 0,
+                "y": 0,
+                "w": 1080,
+                "h": 300
+            }
+        },
+        {
+            "id": "jackpot_panel",
+            "type": "panel",
+            "name": "Jackpot Display",
+            "z_index": 6,
+            "anchor": "top-left",
+            "rect_landscape": {
+                "x": 420,
+                "y": 40,
+                "w": 1080,
+                "h": 140
+            },
+            "rect_portrait": {
+                "x": 40,
+                "y": 120,
+                "w": 1000,
+                "h": 180
+            },
+            "parent_id": "top_bar_group"
+        },
+        {
+            "id": "game_logo",
+            "type": "panel",
+            "name": "Game Logo",
+            "z_index": 6,
+            "anchor": "top-left",
+            "rect_landscape": {
+                "x": 1550,
+                "y": 40,
+                "w": 300,
+                "h": 140
+            },
+            "rect_portrait": {
+                "x": 340,
+                "y": 20,
+                "w": 400,
+                "h": 100
+            },
+            "parent_id": "top_bar_group"
+        },
+        {
+            "id": "reel_frame",
+            "type": "reel_group",
             "name": "Main Reel Frame",
             "z_index": 1,
             "anchor": "top-left",
@@ -34,9 +112,9 @@
                 "h": 640
             },
             "rect_portrait": {
-                "x": 0,
-                "y": 0,
-                "w": 1080,
+                "x": 40,
+                "y": 320,
+                "w": 1000,
                 "h": 640
             }
         },
@@ -53,12 +131,170 @@
                 "h": 200
             },
             "rect_portrait": {
-                "x": 20,
-                "y": 20,
+                "x": 60,
+                "y": 340,
+                "w": 190,
+                "h": 190
+            },
+            "parent_id": "reel_frame"
+        },
+        {
+            "id": "marquee_panel",
+            "type": "panel",
+            "name": "Marquee",
+            "z_index": 5,
+            "anchor": "top-left",
+            "rect_landscape": {
+                "x": 420,
+                "y": 880,
+                "w": 1080,
+                "h": 60
+            },
+            "rect_portrait": {
+                "x": 40,
+                "y": 980,
+                "w": 1000,
+                "h": 80
+            }
+        },
+        {
+            "id": "control_bar_bg",
+            "type": "panel",
+            "name": "Control Bar BG",
+            "z_index": 5,
+            "anchor": "top-left",
+            "rect_landscape": {
+                "x": 0,
+                "y": 960,
+                "w": 1920,
+                "h": 120
+            },
+            "rect_portrait": {
+                "x": 0,
+                "y": 1600,
+                "w": 1080,
+                "h": 320
+            }
+        },
+        {
+            "id": "btn_menu",
+            "type": "button",
+            "name": "Menu Button",
+            "z_index": 6,
+            "anchor": "top-left",
+            "rect_landscape": {
+                "x": 40,
+                "y": 970,
+                "w": 100,
+                "h": 100
+            },
+            "rect_portrait": {
+                "x": 40,
+                "y": 1800,
+                "w": 140,
+                "h": 140
+            },
+            "parent_id": "control_bar_bg"
+        },
+        {
+            "id": "balance_group",
+            "type": "panel",
+            "name": "Balance Info",
+            "z_index": 6,
+            "anchor": "top-left",
+            "rect_landscape": {
+                "x": 180,
+                "y": 970,
+                "w": 400,
+                "h": 100
+            },
+            "rect_portrait": {
+                "x": 220,
+                "y": 1620,
+                "w": 640,
+                "h": 120
+            },
+            "parent_id": "control_bar_bg"
+        },
+        {
+            "id": "bet_group",
+            "type": "panel",
+            "name": "Bet Info",
+            "z_index": 6,
+            "anchor": "top-left",
+            "rect_landscape": {
+                "x": 600,
+                "y": 970,
+                "w": 400,
+                "h": 100
+            },
+            "rect_portrait": {
+                "x": 220,
+                "y": 1780,
+                "w": 640,
+                "h": 120
+            },
+            "parent_id": "control_bar_bg"
+        },
+        {
+            "id": "btn_turbo",
+            "type": "button",
+            "name": "Turbo Button",
+            "z_index": 6,
+            "anchor": "top-left",
+            "rect_landscape": {
+                "x": 1200,
+                "y": 970,
+                "w": 100,
+                "h": 100
+            },
+            "rect_portrait": {
+                "x": 40,
+                "y": 1620,
+                "w": 140,
+                "h": 140
+            },
+            "parent_id": "control_bar_bg"
+        },
+        {
+            "id": "btn_auto",
+            "type": "button",
+            "name": "Auto Button",
+            "z_index": 6,
+            "anchor": "top-left",
+            "rect_landscape": {
+                "x": 1320,
+                "y": 970,
+                "w": 100,
+                "h": 100
+            },
+            "rect_portrait": {
+                "x": 900,
+                "y": 1620,
+                "w": 140,
+                "h": 140
+            },
+            "parent_id": "control_bar_bg"
+        },
+        {
+            "id": "btn_spin",
+            "type": "button",
+            "name": "Spin Button",
+            "z_index": 8,
+            "anchor": "center",
+            "rect_landscape": {
+                "x": 1650,
+                "y": 920,
                 "w": 200,
                 "h": 200
             },
-            "parent_id": "reel_frame"
+            "rect_portrait": {
+                "x": 900,
+                "y": 1800,
+                "w": 160,
+                "h": 160
+            },
+            "parent_id": "control_bar_bg"
         }
     ],
     "rhythm_spec": {

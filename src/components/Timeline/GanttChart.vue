@@ -166,69 +166,73 @@ const spinBlocks = computed(() => {
 
 <style scoped>
 .gantt-chart {
-    height: 100%;
-    background: #18181c;
-    color: #e4e4e7;
     display: flex;
     flex-direction: column;
+    height: 100%;
+    background-color: #ffffff;
+    color: #18181b;
+    font-family: 'Monaco', 'Consolas', monospace;
     user-select: none;
-    border-top: 1px solid #3f3f46;
 }
 
+/* Header / Controls */
 .controls-header {
-    height: 40px;
     display: flex;
     align-items: center;
-    padding: 0 16px;
-    background: #27272a;
-    border-bottom: 1px solid #3f3f46;
+    padding: 8px 16px;
+    background-color: #fafafa;
+    border-bottom: 1px solid #e4e4e7;
     gap: 16px;
 }
 
-.buttons {
-    display: flex;
-    gap: 8px;
-}
-
-button {
-    background: #3f3f46;
-    border: none;
-    color: white;
+.buttons button {
+    background: white;
+    border: 1px solid #d4d4d8;
+    color: #18181b;
     padding: 4px 12px;
     border-radius: 4px;
     cursor: pointer;
     font-size: 12px;
+    font-weight: 600;
 }
 
-button:hover {
-    background: #52525b;
+.buttons button:hover {
+    background: #f4f4f5;
 }
 
-button.active {
-    background: #2563eb;
+.buttons button.active {
+    background: #eff6ff;
+    color: #3b82f6;
+    border-color: #3b82f6;
 }
 
 .time-display {
-    font-family: monospace;
+    font-size: 14px;
     font-weight: bold;
-    color: #fbbf24;
+    color: #3b82f6;
+    min-width: 80px;
+    text-align: right;
 }
 
+/* Timeline Track */
 .timeline-track {
     flex: 1;
     position: relative;
-    overflow-x: auto; /* Allow horizontal scroll if needed */
-    overflow-y: hidden;
-    background: #18181c;
-    cursor: text; /* Suggest scrubbing */
+    overflow: hidden; /* Scroll logic handled by transform */
+    background: #f4f4f5; /* Track bg */
+    cursor: text; /* I-beam cursor for scrubbing */
+    margin: 10px;
+    border-radius: 6px;
+    border: 1px solid #e4e4e7;
 }
 
+/* Grid Markers */
 .marker {
     position: absolute;
     top: 0;
     bottom: 0;
-    border-left: 1px solid #3f3f46;
-    pointer-events: none;
+    width: 1px;
+    background-color: #d4d4d8;
 }
 
 .marker span {
@@ -239,35 +243,41 @@ button.active {
     color: #71717a;
 }
 
+/* Blocks */
 .blocks-layer {
     position: absolute;
-    top: 24px;
+    top: 30px;
+    bottom: 0;
     left: 0;
     right: 0;
-    height: 30px;
 }
 
 .event-block {
     position: absolute;
-    height: 100%;
+    height: 24px;
+    top: 10px; /* Offset from top */
+    background-color: #3b82f6;
     border-radius: 4px;
-    opacity: 0.5;
+    opacity: 0.8;
+    color: white;
+    font-size: 10px;
     display: flex;
     align-items: center;
-    padding-left: 8px;
-    font-size: 11px;
+    padding-left: 6px;
     white-space: nowrap;
     overflow: hidden;
-    pointer-events: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
+/* Playhead */
 .playhead {
     position: absolute;
     top: 0;
     bottom: 0;
     width: 0;
+    border-left: 2px solid #ef4444; /* Red line */
     z-index: 10;
-    pointer-events: none; /* Mouse events handled by container */
+    pointer-events: none;
 }
 
 .playhead .head {
