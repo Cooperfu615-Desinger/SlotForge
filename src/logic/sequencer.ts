@@ -5,7 +5,7 @@
  * at a specific point in time (t).
  */
 
-import type { RhythmSpec, LayoutElement, Rect } from '@/types/manifest'
+import type { RhythmSpec, LayoutElement } from '@/types/manifest'
 
 export interface FrameState {
     [elementId: string]: {
@@ -23,14 +23,7 @@ const easeInBack = (x: number): number => {
     return c3 * x * x * x - c1 * x * x;
 }
 
-const easeOutElastic = (x: number): number => {
-    const c4 = (2 * Math.PI) / 3;
-    return x === 0
-        ? 0
-        : x === 1
-            ? 1
-            : Math.pow(2, -10 * x) * Math.sin((x * 10 - 0.75) * c4) + 1;
-}
+
 
 /**
  * Calculate the state of the machine at a given time.
@@ -68,7 +61,6 @@ export function getFrameState(
             // In full implementation, parse el.id or parent_id
             const reelIndex = 0
 
-            const startTime = 0
             const stopTime = spin_duration + (reelIndex * reel_stop_interval)
 
             // --- Phase 1: Spin (0 -> stopTime) ---
@@ -110,9 +102,6 @@ export function getFrameState(
                     // Here we simulating snapping back to original position (0)
 
                     // Simulate coming from "above" (-bounce_strength)
-                    const bounce = easeOutElastic(progress) // 0 -> 1
-
-                    // Logic: We overshoot down, then bounce back up to 0
                     // Actually easeOutElastic goes 0->1. 
                     // Let's map it: Start at some offset, end at 0.
 

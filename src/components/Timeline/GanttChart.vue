@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useForgeStore } from '@/stores/forge'
 
 const forgeStore = useForgeStore()
@@ -10,7 +10,6 @@ const currentTime = computed(() => forgeStore.currentTime)
 // Timeline Config
 const PIXELS_PER_SECOND = 100
 const DURATION = 5000 // Total timeline duration in ms (5s)
-const TOTAL_WIDTH = (DURATION / 1000) * PIXELS_PER_SECOND
 
 // DOM Refs
 const containerRef = ref<HTMLElement | null>(null)
