@@ -1,0 +1,64 @@
+{
+    "meta": {
+        "project_name": "Antigravity_5x3",
+        "version": "1.0.0",
+        "base_resolution": {
+            "w": 1920,
+            "h": 1080
+        },
+        "orientation": "landscape"
+    },
+    "art_spec": {
+        "symbol_size": {
+            "w": 200,
+            "h": 200
+        },
+        "grid_gap": {
+            "x": 20,
+            "y": 20
+        },
+        "safe_area_margin": 40,
+        "background_bleed": 100
+    },
+    "layout_elements": [
+        {
+            "id": "reel_frame",
+            "type": "panel",
+            "name": "Main Reel Frame",
+            "z_index": 1,
+            "anchor": "top-left",
+            "rect_landscape": {
+                "x": 420,
+                "y": 220,
+                "w": 1080,
+                "h": 640
+            },
+            "rect_portrait": {
+                "x": 0,
+                "y": 0,
+                "w": 1080,
+                "h": 640
+            }
+        },
+        {
+            "id": "reel_1_symbol_1",
+            "type": "symbol",
+            "name": "R1-C1 Symbol",
+            "z_index": 10,
+            "anchor": "top-left",
+            "rect_landscape": {
+                "x": 440,
+                "y": 240,
+                "w": 200,
+                "h": 200
+            },
+            "rect_portrait": {
+                "x": 20,
+                "y": 20,
+                "w": 200,
+                "h": 200
+            },
+            "parent_id": "reel_frame"
+        }
+    ]
+}

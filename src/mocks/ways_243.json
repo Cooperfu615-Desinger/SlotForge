@@ -1,0 +1,44 @@
+{
+    "meta": {
+        "project_name": "Antigravity_Ways",
+        "version": "1.0.0",
+        "base_resolution": {
+            "w": 1920,
+            "h": 1080
+        },
+        "orientation": "landscape"
+    },
+    "art_spec": {
+        "symbol_size": {
+            "w": 180,
+            "h": 180
+        },
+        "grid_gap": {
+            "x": 10,
+            "y": 10
+        },
+        "safe_area_margin": 60,
+        "background_bleed": 120
+    },
+    "layout_elements": [
+        {
+            "id": "center_reel_group",
+            "type": "reel_group",
+            "name": "Center Reel (5 Rows)",
+            "z_index": 5,
+            "anchor": "center",
+            "rect_landscape": {
+                "x": 860,
+                "y": 90,
+                "w": 200,
+                "h": 900
+            },
+            "rect_portrait": {
+                "x": 0,
+                "y": 0,
+                "w": 200,
+                "h": 900
+            }
+        }
+    ]
+}
