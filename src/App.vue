@@ -1,17 +1,8 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { useForgeStore } from '@/stores/forge'
 import StageContainer from '@/components/Renderer/StageContainer.vue'
 import JsonEditor from '@/components/Editor/JsonEditor.vue'
-import normal5x3Data from '@/mocks/normal_5x3.json'
-import type { SlotManifest } from '@/types/manifest'
+// Data is pre-loaded in main.ts, no need to load here
 
-const forgeStore = useForgeStore()
-
-onMounted(() => {
-  // Load default manifest on mount with type assertion
-  forgeStore.loadManifest(normal5x3Data as SlotManifest)
-})
 </script>
 
 <template>
