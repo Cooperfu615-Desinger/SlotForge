@@ -5,20 +5,38 @@ import BlueprintLayer from './Layers/BlueprintLayer.vue'
 import PrototypeLayer from './Layers/PrototypeLayer.vue'
 import { useForgeStore } from '@/stores/forge'
 import { getFrameState, type FrameState } from '@/logic/sequencer'
+import { useAutoFit } from '@/composables/useAutoFit'
 
 const forgeStore = useForgeStore()
 
-// Stage dimensions - Fixed for phone shell
-const stageWidth = ref(450)
-const stageHeight = ref(800)
+// Container ref
+const containerRef = ref<HTMLElement | null>(null)
 
-// Transform state (zoom only, no pan)
-const stageScale = ref(1)
-const stageX = ref(0)
-const stageY = ref(0)
-
-// Get base resolution from manifest
+// Get orientation and base resolution from manifest
+const orientation = computed(() => forgeStore.orientation)
 const baseResolution = computed(() => forgeStore.baseResolution)
+
+// Auto-fit logic
+const {
+  scaleFactor,
+  stageWidth,
+  stageHeight,
+  stageOffsetX,
+  stageOffsetY,
+  screenToStage
+} = useAutoFit({
+  baseResolution,
+  containerRef,
+  orientation
+})
+
+// Mouse position tracking
+const mousePosition = ref({ x: 0, y: 0 })
+
+function handleMouseMove(e: MouseEvent) {
+  const stagePos = screenToStage(e.clientX, e.clientY)
+  mousePosition.value = stagePos
+}
 
 // --- Render Loop & Sequencer ---
 const frameState = ref<FrameState>({})
@@ -67,40 +85,10 @@ onUnmounted(() => {
   }
 })
 
-// Handle mouse wheel for zoom
-function handleWheel(e: WheelEvent) {
-  e.preventDefault()
-  
-  const scaleBy = 1.05
-  const stage = e.currentTarget as HTMLDivElement
-  const oldScale = stageScale.value
-  
-  const pointer = {
-    x: e.clientX - stage.offsetLeft,
-    y: e.clientY - stage.offsetTop
-  }
-  
-  const mousePointTo = {
-    x: (pointer.x - stageX.value) / oldScale,
-    y: (pointer.y - stageY.value) / oldScale
-  }
-  
-  const newScale = e.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy
-  
-  // Limit scale between 0.1 and 5
-  stageScale.value = Math.max(0.1, Math.min(5, newScale))
-  
-  stageX.value = pointer.x - mousePointTo.x * stageScale.value
-  stageY.value = pointer.y - mousePointTo.y * stageScale.value
-}
-
-
 // Drag & Drop state
 const isDraggingFile = ref(false)
-const dropTargetElement = ref<string | null>(null)
 const blobUrls = ref<Set<string>>(new Set())
 
-// Handle drag over
 function handleDragOver(e: DragEvent) {
   e.preventDefault()
   if (e.dataTransfer) {
@@ -109,13 +97,10 @@ function handleDragOver(e: DragEvent) {
   isDraggingFile.value = true
 }
 
-// Handle drag leave
 function handleDragLeave() {
   isDraggingFile.value = false
-  dropTargetElement.value = null
 }
 
-// Handle drop
 async function handleDrop(e: DragEvent) {
   e.preventDefault()
   isDraggingFile.value = false
@@ -129,25 +114,20 @@ async function handleDrop(e: DragEvent) {
     return
   }
   
-  // Create Blob URL (local only, no upload)
   const blobUrl = URL.createObjectURL(file)
   blobUrls.value.add(blobUrl)
   
-  // Determine which element was dropped on
-  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-  const x = (e.clientX - rect.left - stageX.value) / stageScale.value
-  const y = (e.clientY - rect.top - stageY.value) / stageScale.value
+  const stagePos = screenToStage(e.clientX, e.clientY)
   
-  // Find element at drop position
   const targetElement = forgeStore.layoutElements.find(el => {
     const elementRect = forgeStore.orientation === 'landscape' 
       ? el.rect_landscape 
       : el.rect_portrait
     return (
-      x >= elementRect.x &&
-      x <= elementRect.x + elementRect.w &&
-      y >= elementRect.y &&
-      y <= elementRect.y + elementRect.h
+      stagePos.x >= elementRect.x &&
+      stagePos.x <= elementRect.x + elementRect.w &&
+      stagePos.y >= elementRect.y &&
+      stagePos.y <= elementRect.y + elementRect.h
     )
   })
   
@@ -160,7 +140,6 @@ async function handleDrop(e: DragEvent) {
   }
 }
 
-// Cleanup blob URLs on unmount
 function cleanupBlobUrls() {
   blobUrls.value.forEach(url => URL.revokeObjectURL(url))
   blobUrls.value.clear()
@@ -170,49 +149,64 @@ function cleanupBlobUrls() {
 
 <template>
   <div 
+    ref="containerRef"
     class="stage-container"
-    :class="{ 'dragging-file': isDraggingFile }"
-    @wheel="handleWheel"
+    :class="[
+      { 'dragging-file': isDraggingFile },
+      orientation === 'landscape' ? 'landscape' : 'portrait'
+    ]"
     @dragover="handleDragOver"
     @dragleave="handleDragLeave"
     @drop="handleDrop"
+    @mousemove="handleMouseMove"
   >
-    <Stage
-      :config="{
-        width: stageWidth,
-        height: stageHeight,
-        scaleX: stageScale,
-        scaleY: stageScale,
-        x: stageX,
-        y: stageY
-      }"
-    >
-      <!-- Background Grid Layer -->
-      <Layer>
-        <VRect
-          :config="{
-            x: -10000,
-            y: -10000,
-            width: 20000,
-            height: 20000,
-            fill: '#000',
-            listening: false
-          }"
-        />
-      </Layer>
-      
-      <!-- Blueprint Layer (wireframe) -->
-      <BlueprintLayer :frame-state="frameState" />
-      
-      <!-- Prototype Layer (images) -->
-      <PrototypeLayer :frame-state="frameState" />
-    </Stage>
+    <div class="stage-wrapper" :style="{
+      transform: `translate(${stageOffsetX}px, ${stageOffsetY}px)`
+    }">
+      <Stage
+        :config="{
+          width: stageWidth,
+          height: stageHeight,
+          scaleX: scaleFactor,
+          scaleY: scaleFactor,
+          x: 0,
+          y: 0
+        }"
+      >
+        <!-- Background Layer -->
+        <Layer>
+          <VRect
+            :config="{
+              x: 0,
+              y: 0,
+              width: stageWidth,
+              height: stageHeight,
+              fill: '#000',
+              listening: false
+            }"
+          />
+        </Layer>
+        
+        <!-- Blueprint Layer (wireframe) -->
+        <BlueprintLayer :frame-state="frameState" />
+        
+        <!-- Prototype Layer (images) -->
+        <PrototypeLayer :frame-state="frameState" />
+      </Stage>
+    </div>
     
     <!-- Info Overlay -->
     <div class="stage-info-overlay">
       <span>{{ baseResolution.w }} × {{ baseResolution.h }}</span>
+      <span>{{ orientation }}</span>
       <span>{{ forgeStore.currentTime.toFixed(0) }}ms</span>
-      <span>{{ (stageScale * 100).toFixed(0) }}%</span>
+      <span>{{ (scaleFactor * 100).toFixed(0) }}%</span>
+    </div>
+    
+    <!-- Mouse Position Debug -->
+    <div class="mouse-position-overlay">
+      <span>X: {{ Math.round(mousePosition.x) }}</span>
+      <span>Y: {{ Math.round(mousePosition.y) }}</span>
     </div>
   </div>
 </template>
@@ -220,8 +214,8 @@ function cleanupBlobUrls() {
 <style scoped>
 .stage-container {
   position: relative;
-  width: 450px;
-  height: 800px;
+  width: 100%;
+  max-width: 600px;
   
   /* Phone shell styling */
   border: 8px solid #333;
@@ -233,11 +227,22 @@ function cleanupBlobUrls() {
   
   overflow: hidden;
   background: #000;
-  cursor: default;
+  cursor: crosshair;
 }
 
-.stage-container:active {
-  cursor: default;
+/* Dynamic aspect ratio based on orientation */
+.stage-container.landscape {
+  aspect-ratio: 16 / 9;
+}
+
+.stage-container.portrait {
+  aspect-ratio: 9 / 16;
+}
+
+.stage-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
 
 /* Info Overlay */
@@ -248,15 +253,15 @@ function cleanupBlobUrls() {
   transform: translateX(-50%);
   
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   padding: 0.5rem 1rem;
   
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 9999px;
   
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #a1a1aa;
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
   
@@ -265,6 +270,33 @@ function cleanupBlobUrls() {
 }
 
 .stage-info-overlay span {
+  white-space: nowrap;
+}
+
+/* Mouse Position Overlay */
+.mouse-position-overlay {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  
+  background: rgba(167, 139, 250, 0.2);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 0.5rem;
+  
+  font-size: 0.7rem;
+  color: #a78bfa;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  
+  z-index: 100;
+  pointer-events: none;
+}
+
+.mouse-position-overlay span {
   white-space: nowrap;
 }
 </style>
