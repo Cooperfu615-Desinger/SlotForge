@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useForgeStore } from '@/stores/forge'
 import { VueMonacoEditor } from '@guolao/vue-monaco-editor'
 import type { SlotManifest } from '@/types/manifest'
@@ -14,11 +14,18 @@ const editorError = ref('')
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
 // Initialize editor content from store
+onMounted(() => {
+  if (forgeStore.manifest) {
+    editorContent.value = JSON.stringify(forgeStore.manifest, null, 2)
+  }
+})
+
+// Watch for manifest changes
 watch(() => forgeStore.manifest, (newManifest) => {
-  if (newManifest) {
+  if (newManifest && !editorContent.value) {
     editorContent.value = JSON.stringify(newManifest, null, 2)
   }
-}, { immediate: true })
+})
 
 // Handle editor change with debounce
 function handleEditorChange(value: string | undefined) {

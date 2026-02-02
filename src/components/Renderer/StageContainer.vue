@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Stage, Layer } from 'vue-konva'
+import { Stage, Layer, Rect as VRect } from 'vue-konva'
 import BlueprintLayer from './Layers/BlueprintLayer.vue'
 import { useForgeStore } from '@/stores/forge'
 
@@ -122,7 +122,7 @@ onMounted(() => {
       >
         <!-- Background Grid Layer -->
         <Layer>
-          <v-rect
+          <VRect
             :config="{
               x: -10000,
               y: -10000,

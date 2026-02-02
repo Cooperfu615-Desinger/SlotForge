@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Layer } from 'vue-konva'
+import { Layer, Rect as VRect, Line as VLine, Text as VText } from 'vue-konva'
 import { useForgeStore } from '@/stores/forge'
 import type { LayoutElement, Rect } from '@/types/manifest'
 
@@ -141,7 +141,7 @@ const blueprintElements = computed(() => {
 <template>
   <Layer v-if="manifest">
     <!-- Base resolution frame -->
-    <v-rect
+    <VRect
       :config="{
         x: 0,
         y: 0,
@@ -154,13 +154,13 @@ const blueprintElements = computed(() => {
     />
     
     <!-- Bleed area -->
-    <v-rect
+    <VRect
       v-if="bleedRect"
       :config="{ ...bleedRect, listening: false }"
     />
     
     <!-- Safe area -->
-    <v-rect
+    <VRect
       v-if="safeAreaRect"
       :config="{ ...safeAreaRect, listening: false }"
     />
@@ -168,7 +168,7 @@ const blueprintElements = computed(() => {
     <!-- Layout elements -->
     <template v-for="item in blueprintElements" :key="item.element.id">
       <!-- Element rectangle -->
-      <v-rect
+      <VRect
         :config="{
           x: item.rect.x,
           y: item.rect.y,
@@ -182,7 +182,7 @@ const blueprintElements = computed(() => {
       />
       
       <!-- Element label -->
-      <v-text
+      <VText
         :config="{
           x: item.rect.x + 5,
           y: item.rect.y + 5,
@@ -194,7 +194,7 @@ const blueprintElements = computed(() => {
       />
       
       <!-- Z-index badge -->
-      <v-text
+      <VText
         :config="{
           x: item.rect.x + item.rect.w - 30,
           y: item.rect.y + 5,
@@ -206,14 +206,14 @@ const blueprintElements = computed(() => {
       />
       
       <!-- Dimension lines -->
-      <v-line
+      <VLine
         v-for="(line, idx) in item.dimensionLines"
         :key="`line-${item.element.id}-${idx}`"
         :config="{ ...line, listening: false }"
       />
       
       <!-- Dimension texts -->
-      <v-text
+      <VText
         v-for="(text, idx) in item.dimensionTexts"
         :key="`text-${item.element.id}-${idx}`"
         :config="{ ...text, listening: false }"
@@ -221,7 +221,7 @@ const blueprintElements = computed(() => {
     </template>
     
     <!-- Legend -->
-    <v-rect
+    <VRect
       :config="{
         x: 10,
         y: 10,
@@ -235,7 +235,7 @@ const blueprintElements = computed(() => {
       }"
     />
     
-    <v-text
+    <VText
       :config="{
         x: 20,
         y: 20,
@@ -247,7 +247,7 @@ const blueprintElements = computed(() => {
       }"
     />
     
-    <v-text
+    <VText
       :config="{
         x: 20,
         y: 45,
@@ -258,7 +258,7 @@ const blueprintElements = computed(() => {
       }"
     />
     
-    <v-text
+    <VText
       :config="{
         x: 20,
         y: 65,
@@ -269,7 +269,7 @@ const blueprintElements = computed(() => {
       }"
     />
     
-    <v-text
+    <VText
       :config="{
         x: 20,
         y: 85,
@@ -280,7 +280,7 @@ const blueprintElements = computed(() => {
       }"
     />
     
-    <v-text
+    <VText
       :config="{
         x: 20,
         y: 105,
