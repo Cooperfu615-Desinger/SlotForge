@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { SlotManifest, Orientation } from '@/types/manifest'
+import type { SlotManifest, Orientation, LayoutElement } from '@/types/manifest'
 
 export const useForgeStore = defineStore('forge', () => {
     // State: Current active manifest
@@ -8,6 +8,9 @@ export const useForgeStore = defineStore('forge', () => {
 
     // State: Current orientation mode
     const currentOrientation = ref<Orientation>('landscape')
+
+    // State: Selected element for inspection
+    const selectedElement = ref<LayoutElement | null>(null)
 
     // Computed: Get current orientation based on manifest
     const orientation = computed(() => {
@@ -45,15 +48,35 @@ export const useForgeStore = defineStore('forge', () => {
         currentOrientation.value = currentOrientation.value === 'landscape' ? 'portrait' : 'landscape'
     }
 
+    // Action: Select element for inspection
+    function selectElement(element: LayoutElement | null) {
+        selectedElement.value = element
+    }
+
+    // Action: Update element asset URL
+    function updateElementAsset(elementId: string, assetUrl: string) {
+        if (!manifest.value) return
+
+        const element = manifest.value.layout_elements.find(el => el.id === elementId)
+        if (element) {
+            element.asset_url = assetUrl
+            // Trigger reactivity
+            manifest.value = { ...manifest.value }
+        }
+    }
+
     return {
         manifest,
         currentOrientation,
+        selectedElement,
         orientation,
         baseResolution,
         artSpec,
         layoutElements,
         loadManifest,
         updateManifest,
-        toggleOrientation
+        toggleOrientation,
+        selectElement,
+        updateElementAsset
     }
 })
