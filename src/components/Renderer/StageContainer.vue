@@ -8,18 +8,14 @@ import { getFrameState, type FrameState } from '@/logic/sequencer'
 
 const forgeStore = useForgeStore()
 
-// Stage dimensions
-const stageWidth = ref(window.innerWidth * 0.6)
-const stageHeight = ref(window.innerHeight)
+// Stage dimensions - Fixed for phone shell
+const stageWidth = ref(450)
+const stageHeight = ref(800)
 
-// Transform state
+// Transform state (zoom only, no pan)
 const stageScale = ref(1)
 const stageX = ref(0)
 const stageY = ref(0)
-
-// Pan state
-const isPanning = ref(false)
-const lastPointerPosition = ref({ x: 0, y: 0 })
 
 // Get base resolution from manifest
 const baseResolution = computed(() => forgeStore.baseResolution)
@@ -47,13 +43,8 @@ function animate(timestamp: number) {
     lastTime = timestamp
 
     if (forgeStore.isPlaying) {
-        // Advance time
-        // Note: writing to Pinia on every frame is expensive in a real game,
-        // but for this tool it ensures the Gantt chart and Inspector stay in sync.
         const newTime = forgeStore.currentTime + deltaTime
         
-        // Loop back if > 5000 (Hardcoded prototype duration)
-        // In real app, derived from rhythmSpec total duration
         if (newTime > 5000) {
             forgeStore.setTime(0)
         } else {
@@ -66,10 +57,6 @@ function animate(timestamp: number) {
 
 // Start/Stop Loop
 onMounted(() => {
-    window.addEventListener('resize', handleResize)
-    window.addEventListener('mouseup', handleMouseUp)
-    
-    // Start loop
     animationFrameId = requestAnimationFrame(animate)
 })
 
@@ -79,14 +66,6 @@ onUnmounted(() => {
       cancelAnimationFrame(animationFrameId)
   }
 })
-
-// Handle window resize
-function handleResize() {
-  stageWidth.value = window.innerWidth * 0.6
-  // Approximate height based on layout (top section)
-  // Ideally this should be passed as prop or calculated from container
-  stageHeight.value = (window.innerHeight * 0.75) // 75% of screen
-}
 
 // Handle mouse wheel for zoom
 function handleWheel(e: WheelEvent) {
@@ -115,37 +94,6 @@ function handleWheel(e: WheelEvent) {
   stageY.value = pointer.y - mousePointTo.y * stageScale.value
 }
 
-// Handle right-click pan start
-function handleMouseDown(e: MouseEvent) {
-  if (e.button === 2) { // Right click
-    e.preventDefault()
-    isPanning.value = true
-    lastPointerPosition.value = { x: e.clientX, y: e.clientY }
-  }
-}
-
-// Handle pan move
-function handleMouseMove(e: MouseEvent) {
-  if (!isPanning.value) return
-  
-  const dx = e.clientX - lastPointerPosition.value.x
-  const dy = e.clientY - lastPointerPosition.value.y
-  
-  stageX.value += dx
-  stageY.value += dy
-  
-  lastPointerPosition.value = { x: e.clientX, y: e.clientY }
-}
-
-// Handle pan end
-function handleMouseUp() {
-  isPanning.value = false
-}
-
-// Prevent context menu on right click
-function handleContextMenu(e: MouseEvent) {
-  e.preventDefault()
-}
 
 // Drag & Drop state
 const isDraggingFile = ref(false)
@@ -225,132 +173,98 @@ function cleanupBlobUrls() {
     class="stage-container"
     :class="{ 'dragging-file': isDraggingFile }"
     @wheel="handleWheel"
-    @mousedown="handleMouseDown"
-    @mousemove="handleMouseMove"
-    @contextmenu="handleContextMenu"
     @dragover="handleDragOver"
     @dragleave="handleDragLeave"
     @drop="handleDrop"
   >
-    <div class="stage-header">
-      <h3>Blueprint Renderer</h3>
-      <div class="stage-info">
-        <span>Resolution: {{ baseResolution.w }} x {{ baseResolution.h }} | Time: {{ forgeStore.currentTime.toFixed(0) }}ms</span>
-        <span>Zoom: {{ (stageScale * 100).toFixed(0) }}%</span>
-      </div>
-    </div>
+    <Stage
+      :config="{
+        width: stageWidth,
+        height: stageHeight,
+        scaleX: stageScale,
+        scaleY: stageScale,
+        x: stageX,
+        y: stageY
+      }"
+    >
+      <!-- Background Grid Layer -->
+      <Layer>
+        <VRect
+          :config="{
+            x: -10000,
+            y: -10000,
+            width: 20000,
+            height: 20000,
+            fill: '#000',
+            listening: false
+          }"
+        />
+      </Layer>
+      
+      <!-- Blueprint Layer (wireframe) -->
+      <BlueprintLayer :frame-state="frameState" />
+      
+      <!-- Prototype Layer (images) -->
+      <PrototypeLayer :frame-state="frameState" />
+    </Stage>
     
-    <div class="canvas-wrapper">
-      <Stage
-        :config="{
-          width: stageWidth,
-          height: stageHeight - 60,
-          scaleX: stageScale,
-          scaleY: stageScale,
-          x: stageX,
-          y: stageY
-        }"
-      >
-        <!-- Background Grid Layer -->
-        <Layer>
-          <VRect
-            :config="{
-              x: -10000,
-              y: -10000,
-              width: 20000,
-              height: 20000,
-              fill: '#18181c',
-              listening: false
-            }"
-          />
-        </Layer>
-        
-        <!-- Blueprint Layer (wireframe) -->
-        <BlueprintLayer :frame-state="frameState" />
-        
-        <!-- Prototype Layer (images) -->
-        <PrototypeLayer :frame-state="frameState" />
-      </Stage>
-    </div>
-    
-    <div class="stage-controls">
-      <button @click="stageScale = 1; stageX = 0; stageY = 0">Reset View</button>
-      <span class="hint">💡 Scroll to zoom | Right-click to pan | Drag images to elements</span>
+    <!-- Info Overlay -->
+    <div class="stage-info-overlay">
+      <span>{{ baseResolution.w }} × {{ baseResolution.h }}</span>
+      <span>{{ forgeStore.currentTime.toFixed(0) }}ms</span>
+      <span>{{ (stageScale * 100).toFixed(0) }}%</span>
     </div>
   </div>
 </template>
 
 <style scoped>
 .stage-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background: #18181c;
-  cursor: grab;
+  position: relative;
+  width: 450px;
+  height: 800px;
+  
+  /* Phone shell styling */
+  border: 8px solid #333;
+  border-radius: 3rem;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  
+  overflow: hidden;
+  background: #000;
+  cursor: default;
 }
 
 .stage-container:active {
-  cursor: grabbing;
+  cursor: default;
 }
 
-.stage-header {
-  padding: 1rem;
-  background: #252526;
-  border-bottom: 1px solid #3f3f46;
+/* Info Overlay */
+.stage-info-overlay {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.stage-header h3 {
-  margin: 0;
-  color: #e4e4e7;
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.stage-info {
-  display: flex;
-  gap: 1.5rem;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  
   font-size: 0.75rem;
   color: #a1a1aa;
-  font-family: 'Monaco', 'Menlo', monospace;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  
+  z-index: 100;
+  pointer-events: none;
 }
 
-.canvas-wrapper {
-  flex: 1;
-  overflow: hidden;
-  position: relative;
-}
-
-.stage-controls {
-  padding: 0.75rem 1rem;
-  background: #252526;
-  border-top: 1px solid #3f3f46;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.stage-controls button {
-  padding: 0.5rem 1rem;
-  background: #3f3f46;
-  color: #e4e4e7;
-  border: none;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.stage-controls button:hover {
-  background: #52525b;
-}
-
-.hint {
-  font-size: 0.75rem;
-  color: #71717a;
+.stage-info-overlay span {
+  white-space: nowrap;
 }
 </style>

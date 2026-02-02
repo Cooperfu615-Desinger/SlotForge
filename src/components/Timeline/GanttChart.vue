@@ -4,7 +4,6 @@ import { useForgeStore } from '@/stores/forge'
 
 const forgeStore = useForgeStore()
 const rhythmSpec = computed(() => forgeStore.rhythmSpec)
-const isPlaying = computed(() => forgeStore.isPlaying)
 const currentTime = computed(() => forgeStore.currentTime)
 
 // Timeline Config
@@ -29,16 +28,6 @@ const markers = computed(() => {
         left: (i * 500 / 1000) * PIXELS_PER_SECOND
     }))
 })
-
-// Playback Controls
-function togglePlay() {
-    forgeStore.togglePlayback()
-}
-
-function stop() {
-    forgeStore.togglePlayback(false)
-    forgeStore.setTime(0)
-}
 
 // Scrubbing Logic
 const isScrubbing = ref(false)
@@ -69,15 +58,13 @@ function updateTimeFromMouse(e: MouseEvent) {
     const x = e.clientX - rect.left
     
     // Convert px to ms
-    // x = (ms / 1000) * PPS
-    // ms = (x / PPS) * 1000
     const time = (x / PIXELS_PER_SECOND) * 1000
     
     // Clamp
     const clampedTime = Math.max(0, Math.min(DURATION, time))
     
     // If playing, pause while scrubbing
-    if (isPlaying.value) {
+    if (forgeStore.isPlaying) {
         forgeStore.togglePlayback(false)
     }
     
@@ -110,19 +97,6 @@ const spinBlocks = computed(() => {
 
 <template>
     <div class="gantt-chart">
-        <!-- Controls Header -->
-        <div class="controls-header">
-            <div class="buttons">
-                <button @click="togglePlay" :class="{ active: isPlaying }">
-                    {{ isPlaying ? '⏸ Pause' : '▶ Play' }}
-                </button>
-                <button @click="stop">⏹ Stop</button>
-            </div>
-            <div class="time-display">
-                {{ formatTime(currentTime) }}
-            </div>
-        </div>
-
         <!-- Timeline Area -->
         <div 
             class="timeline-track" 
@@ -169,61 +143,21 @@ const spinBlocks = computed(() => {
     display: flex;
     flex-direction: column;
     height: 100%;
-    background-color: #ffffff;
-    color: #18181b;
-    font-family: 'Monaco', 'Consolas', monospace;
+    background-color: transparent;
+    color: #fafafa;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
     user-select: none;
-}
-
-/* Header / Controls */
-.controls-header {
-    display: flex;
-    align-items: center;
-    padding: 8px 16px;
-    background-color: #fafafa;
-    border-bottom: 1px solid #e4e4e7;
-    gap: 16px;
-}
-
-.buttons button {
-    background: white;
-    border: 1px solid #d4d4d8;
-    color: #18181b;
-    padding: 4px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.buttons button:hover {
-    background: #f4f4f5;
-}
-
-.buttons button.active {
-    background: #eff6ff;
-    color: #3b82f6;
-    border-color: #3b82f6;
-}
-
-.time-display {
-    font-size: 14px;
-    font-weight: bold;
-    color: #3b82f6;
-    min-width: 80px;
-    text-align: right;
 }
 
 /* Timeline Track */
 .timeline-track {
     flex: 1;
     position: relative;
-    overflow: hidden; /* Scroll logic handled by transform */
-    background: #f4f4f5; /* Track bg */
-    cursor: text; /* I-beam cursor for scrubbing */
-    margin: 10px;
-    border-radius: 6px;
-    border: 1px solid #e4e4e7;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.05);
+    cursor: text;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Grid Markers */
@@ -232,7 +166,7 @@ const spinBlocks = computed(() => {
     top: 0;
     bottom: 0;
     width: 1px;
-    background-color: #d4d4d8;
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .marker span {
@@ -240,7 +174,7 @@ const spinBlocks = computed(() => {
     top: 4px;
     left: 4px;
     font-size: 10px;
-    color: #71717a;
+    color: rgba(255, 255, 255, 0.4);
 }
 
 /* Blocks */
@@ -255,7 +189,7 @@ const spinBlocks = computed(() => {
 .event-block {
     position: absolute;
     height: 24px;
-    top: 10px; /* Offset from top */
+    top: 10px;
     background-color: #3b82f6;
     border-radius: 4px;
     opacity: 0.8;
@@ -269,13 +203,14 @@ const spinBlocks = computed(() => {
     box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
-/* Playhead */
+/* Playhead - Neon Purple */
 .playhead {
     position: absolute;
     top: 0;
     bottom: 0;
     width: 0;
-    border-left: 2px solid #ef4444; /* Red line */
+    border-left: 3px solid #a78bfa;
+    box-shadow: 0 0 10px #a78bfa, 0 0 20px rgba(167, 139, 250, 0.5);
     z-index: 10;
     pointer-events: none;
 }
@@ -288,15 +223,16 @@ const spinBlocks = computed(() => {
     height: 0; 
     border-left: 6px solid transparent;
     border-right: 6px solid transparent;
-    border-top: 8px solid #ef4444;
+    border-top: 10px solid #a78bfa;
+    filter: drop-shadow(0 0 6px #a78bfa);
 }
 
 .playhead .line {
     position: absolute;
     top: 0;
     bottom: 0;
-    left: -1px;
-    width: 2px;
-    background: #ef4444;
+    left: -1.5px;
+    width: 3px;
+    background: #a78bfa;
 }
 </style>
