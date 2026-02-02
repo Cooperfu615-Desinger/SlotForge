@@ -16,6 +16,11 @@ export const useForgeStore = defineStore('forge', () => {
     const currentTime = ref<number>(0)
     const isPlaying = ref<boolean>(false)
 
+    // State: UI Controls
+    const manualZoom = ref<number | null>(null) // null = auto-fit, number = manual zoom (0.5 to 2.0)
+    const showDynamicIsland = ref<boolean>(true)
+    const showSafeAreaGuide = ref<boolean>(true)
+
     // Computed: Get current orientation based on manifest
     const orientation = computed(() => {
         return manifest.value?.meta.orientation || currentOrientation.value
@@ -93,12 +98,32 @@ export const useForgeStore = defineStore('forge', () => {
         }
     }
 
+    // Action: UI Controls
+    function setManualZoom(zoom: number | null) {
+        if (zoom === null) {
+            manualZoom.value = null
+        } else {
+            manualZoom.value = Math.max(0.5, Math.min(2.0, zoom))
+        }
+    }
+
+    function toggleDynamicIsland() {
+        showDynamicIsland.value = !showDynamicIsland.value
+    }
+
+    function toggleSafeAreaGuide() {
+        showSafeAreaGuide.value = !showSafeAreaGuide.value
+    }
+
     return {
         manifest,
         currentOrientation,
         selectedElement,
         currentTime,
         isPlaying,
+        manualZoom,
+        showDynamicIsland,
+        showSafeAreaGuide,
         orientation,
         baseResolution,
         artSpec,
@@ -110,6 +135,9 @@ export const useForgeStore = defineStore('forge', () => {
         selectElement,
         updateElementAsset,
         setTime,
-        togglePlayback
+        togglePlayback,
+        setManualZoom,
+        toggleDynamicIsland,
+        toggleSafeAreaGuide
     }
 })

@@ -10,6 +10,7 @@ interface AutoFitOptions {
     baseResolution: Ref<Resolution>
     containerRef: Ref<HTMLElement | null>
     orientation: Ref<'landscape' | 'portrait'>
+    manualZoom?: Ref<number | null> // NEW: null = auto-fit, number = manual zoom
 }
 
 /**
@@ -17,7 +18,7 @@ interface AutoFitOptions {
  * Ensures content is fully visible without clipping
  */
 export function useAutoFit(options: AutoFitOptions) {
-    const { baseResolution, containerRef, orientation } = options
+    const { baseResolution, containerRef, orientation, manualZoom } = options
 
     // Container dimensions
     const containerWidth = ref(0)
@@ -26,6 +27,11 @@ export function useAutoFit(options: AutoFitOptions) {
     // Scale factor to fit content in container
     const scaleFactor = computed(() => {
         if (!containerWidth.value || !containerHeight.value) return 1
+
+        // If manual zoom is set, use it instead of auto-fit
+        if (manualZoom?.value !== null && manualZoom?.value !== undefined) {
+            return manualZoom.value
+        }
 
         const scaleX = containerWidth.value / baseResolution.value.w
         const scaleY = containerHeight.value / baseResolution.value.h

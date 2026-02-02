@@ -27,7 +27,8 @@ const {
 } = useAutoFit({
   baseResolution,
   containerRef,
-  orientation
+  orientation,
+  manualZoom: computed(() => forgeStore.manualZoom)
 })
 
 // Mouse position tracking
@@ -195,6 +196,45 @@ function cleanupBlobUrls() {
       </Stage>
     </div>
     
+    <!-- Dynamic Island (toggleable) -->
+    <div 
+      v-if="forgeStore.showDynamicIsland" 
+      class="dynamic-island"
+      :class="{ 'portrait': orientation === 'portrait' }"
+    >
+    </div>
+    
+    <!-- Safe Area Guide (toggleable) -->
+    <div 
+      v-if="forgeStore.showSafeAreaGuide" 
+      class="safe-area-guide"
+      :style="{
+        top: `${forgeStore.artSpec?.safe_area_margin || 40}px`,
+        left: `${forgeStore.artSpec?.safe_area_margin || 40}px`,
+        right: `${forgeStore.artSpec?.safe_area_margin || 40}px`,
+        bottom: `${forgeStore.artSpec?.safe_area_margin || 40}px`
+      }"
+    >
+    </div>
+    
+    <!-- Toggle Buttons -->
+    <div class="ui-toggles">
+      <button 
+        class="toggle-btn" 
+        @click="forgeStore.toggleDynamicIsland"
+        :title="forgeStore.showDynamicIsland ? 'Hide Dynamic Island' : 'Show Dynamic Island'"
+      >
+        {{ forgeStore.showDynamicIsland ? '👁️' : '👁️‍🗨️' }}
+      </button>
+      <button 
+        class="toggle-btn" 
+        @click="forgeStore.toggleSafeAreaGuide"
+        :title="forgeStore.showSafeAreaGuide ? 'Hide Safe Area' : 'Show Safe Area'"
+      >
+        {{ forgeStore.showSafeAreaGuide ? '🔲' : '⬜' }}
+      </button>
+    </div>
+    
     <!-- Info Overlay -->
     <div class="stage-info-overlay">
       <span>{{ baseResolution.w }} × {{ baseResolution.h }}</span>
@@ -299,4 +339,73 @@ function cleanupBlobUrls() {
 .mouse-position-overlay span {
   white-space: nowrap;
 }
+
+/* Dynamic Island */
+.dynamic-island {
+  position: absolute;
+  width: 120px;
+  height: 35px;
+  background: #000;
+  border-radius: 20px;
+  box-shadow: 
+    inset 0 2px 4px rgba(255, 255, 255, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  pointer-events: none;
+  
+  /* Landscape: left side */
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.dynamic-island.portrait {
+  /* Portrait: top center */
+  left: 50%;
+  top: 1rem;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 30px;
+}
+
+/* Safe Area Guide */
+.safe-area-guide {
+  position: absolute;
+  border: 2px solid rgba(255, 0, 0, 0.5);
+  border-radius: 0.5rem;
+  pointer-events: none;
+  z-index: 150;
+  background: rgba(255, 0, 0, 0.05);
+}
+
+/* UI Toggle Buttons */
+.ui-toggles {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 250;
+}
+
+.toggle-btn {
+  width: 32px;
+  height: 32px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.toggle-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
 </style>
