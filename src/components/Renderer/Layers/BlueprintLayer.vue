@@ -20,6 +20,11 @@ function getCurrentRect(element: LayoutElement): Rect {
     : element.rect_portrait
 }
 
+// Handle element click for selection
+function handleElementClick(element: LayoutElement) {
+  forgeStore.selectElement(element)
+}
+
 // Color scheme
 const colors = {
   reelFrame: '#3b82f6',      // Blue for reel frames
@@ -177,8 +182,10 @@ const blueprintElements = computed(() => {
           stroke: item.color,
           strokeWidth: 2,
           fill: item.color + '20',
-          listening: false
+          listening: true
         }"
+        @click="() => handleElementClick(item.element)"
+        @tap="() => handleElementClick(item.element)"
       />
       
       <!-- Element label -->

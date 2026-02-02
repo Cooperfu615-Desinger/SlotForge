@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Stage, Layer, Rect as VRect } from 'vue-konva'
 import BlueprintLayer from './Layers/BlueprintLayer.vue'
+import PrototypeLayer from './Layers/PrototypeLayer.vue'
 import { useForgeStore } from '@/stores/forge'
 
 const forgeStore = useForgeStore()
@@ -87,19 +88,98 @@ function handleContextMenu(e: MouseEvent) {
   e.preventDefault()
 }
 
+// Drag & Drop state
+const isDraggingFile = ref(false)
+const dropTargetElement = ref<string | null>(null)
+const blobUrls = ref<Set<string>>(new Set())
+
+// Handle drag over
+function handleDragOver(e: DragEvent) {
+  e.preventDefault()
+  if (e.dataTransfer) {
+    e.dataTransfer.dropEffect = 'copy'
+  }
+  isDraggingFile.value = true
+}
+
+// Handle drag leave
+function handleDragLeave() {
+  isDraggingFile.value = false
+  dropTargetElement.value = null
+}
+
+// Handle drop
+async function handleDrop(e: DragEvent) {
+  e.preventDefault()
+  isDraggingFile.value = false
+  
+  const files = e.dataTransfer?.files
+  if (!files || files.length === 0) return
+  
+  const file = files[0]
+  if (!file.type.startsWith('image/')) {
+    alert('Please drop an image file')
+    return
+  }
+  
+  // Create Blob URL (local only, no upload)
+  const blobUrl = URL.createObjectURL(file)
+  blobUrls.value.add(blobUrl)
+  
+  // Determine which element was dropped on
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  const x = (e.clientX - rect.left - stageX.value) / stageScale.value
+  const y = (e.clientY - rect.top - stageY.value) / stageScale.value
+  
+  // Find element at drop position
+  const targetElement = forgeStore.layoutElements.find(el => {
+    const elementRect = forgeStore.orientation === 'landscape' 
+      ? el.rect_landscape 
+      : el.rect_portrait
+    return (
+      x >= elementRect.x &&
+      x <= elementRect.x + elementRect.w &&
+      y >= elementRect.y &&
+      y <= elementRect.y + elementRect.h
+    )
+  })
+  
+  if (targetElement) {
+    forgeStore.updateElementAsset(targetElement.id, blobUrl)
+  } else {
+    alert('Please drop the image on an element')
+    URL.revokeObjectURL(blobUrl)
+    blobUrls.value.delete(blobUrl)
+  }
+}
+
+// Cleanup blob URLs on unmount
+function cleanupBlobUrls() {
+  blobUrls.value.forEach(url => URL.revokeObjectURL(url))
+  blobUrls.value.clear()
+}
+
 onMounted(() => {
   window.addEventListener('resize', handleResize)
   window.addEventListener('mouseup', handleMouseUp)
+})
+
+onUnmounted(() => {
+  cleanupBlobUrls()
 })
 </script>
 
 <template>
   <div 
     class="stage-container"
+    :class="{ 'dragging-file': isDraggingFile }"
     @wheel="handleWheel"
     @mousedown="handleMouseDown"
     @mousemove="handleMouseMove"
     @contextmenu="handleContextMenu"
+    @dragover="handleDragOver"
+    @dragleave="handleDragLeave"
+    @drop="handleDrop"
   >
     <div class="stage-header">
       <h3>Blueprint Renderer</h3>
@@ -134,8 +214,11 @@ onMounted(() => {
           />
         </Layer>
         
-        <!-- Blueprint Layer -->
+        <!-- Blueprint Layer (wireframe) -->
         <BlueprintLayer />
+        
+        <!-- Prototype Layer (images) -->
+        <PrototypeLayer />
       </Stage>
     </div>
     
