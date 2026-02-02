@@ -12,6 +12,10 @@ export const useForgeStore = defineStore('forge', () => {
     // State: Selected element for inspection
     const selectedElement = ref<LayoutElement | null>(null)
 
+    // State: Timeline control
+    const currentTime = ref<number>(0)
+    const isPlaying = ref<boolean>(false)
+
     // Computed: Get current orientation based on manifest
     const orientation = computed(() => {
         return manifest.value?.meta.orientation || currentOrientation.value
@@ -32,10 +36,18 @@ export const useForgeStore = defineStore('forge', () => {
         return manifest.value?.layout_elements || []
     })
 
+    // Computed: Get rhythm spec
+    const rhythmSpec = computed(() => {
+        return manifest.value?.rhythm_spec
+    })
+
     // Action: Load manifest from JSON
     function loadManifest(data: SlotManifest) {
         manifest.value = data
         currentOrientation.value = data.meta.orientation
+        // Reset timeline on load
+        currentTime.value = 0
+        isPlaying.value = false
     }
 
     // Action: Update manifest
@@ -65,18 +77,36 @@ export const useForgeStore = defineStore('forge', () => {
         }
     }
 
+    // Action: Timeline Controls
+    function setTime(time: number) {
+        currentTime.value = Math.max(0, time)
+    }
+
+    function togglePlayback(playing?: boolean) {
+        if (typeof playing === 'boolean') {
+            isPlaying.value = playing
+        } else {
+            isPlaying.value = !isPlaying.value
+        }
+    }
+
     return {
         manifest,
         currentOrientation,
         selectedElement,
+        currentTime,
+        isPlaying,
         orientation,
         baseResolution,
         artSpec,
         layoutElements,
+        rhythmSpec,
         loadManifest,
         updateManifest,
         toggleOrientation,
         selectElement,
-        updateElementAsset
+        updateElementAsset,
+        setTime,
+        togglePlayback
     }
 })

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { Stage, Layer, Rect as VRect } from 'vue-konva'
 import BlueprintLayer from './Layers/BlueprintLayer.vue'
 import PrototypeLayer from './Layers/PrototypeLayer.vue'
 import { useForgeStore } from '@/stores/forge'
+import { getFrameState, type FrameState } from '@/logic/sequencer'
 
 const forgeStore = useForgeStore()
 
@@ -23,10 +24,68 @@ const lastPointerPosition = ref({ x: 0, y: 0 })
 // Get base resolution from manifest
 const baseResolution = computed(() => forgeStore.baseResolution)
 
+// --- Render Loop & Sequencer ---
+const frameState = ref<FrameState>({})
+let animationFrameId: number | null = null
+let lastTime = 0
+
+// Compute frame state when time changes (Passive)
+watch(
+  [() => forgeStore.currentTime, () => forgeStore.rhythmSpec, () => forgeStore.layoutElements],
+  ([currentTime, rhythmSpec, layoutElements]) => {
+    if (layoutElements) {
+        frameState.value = getFrameState(currentTime, rhythmSpec, layoutElements)
+    }
+  },
+  { immediate: true }
+)
+
+// Active Playback Loop
+function animate(timestamp: number) {
+    if (!lastTime) lastTime = timestamp
+    const deltaTime = timestamp - lastTime
+    lastTime = timestamp
+
+    if (forgeStore.isPlaying) {
+        // Advance time
+        // Note: writing to Pinia on every frame is expensive in a real game,
+        // but for this tool it ensures the Gantt chart and Inspector stay in sync.
+        const newTime = forgeStore.currentTime + deltaTime
+        
+        // Loop back if > 5000 (Hardcoded prototype duration)
+        // In real app, derived from rhythmSpec total duration
+        if (newTime > 5000) {
+            forgeStore.setTime(0)
+        } else {
+            forgeStore.setTime(newTime)
+        }
+    }
+
+    animationFrameId = requestAnimationFrame(animate)
+}
+
+// Start/Stop Loop
+onMounted(() => {
+    window.addEventListener('resize', handleResize)
+    window.addEventListener('mouseup', handleMouseUp)
+    
+    // Start loop
+    animationFrameId = requestAnimationFrame(animate)
+})
+
+onUnmounted(() => {
+  cleanupBlobUrls()
+  if (animationFrameId !== null) {
+      cancelAnimationFrame(animationFrameId)
+  }
+})
+
 // Handle window resize
 function handleResize() {
   stageWidth.value = window.innerWidth * 0.6
-  stageHeight.value = window.innerHeight
+  // Approximate height based on layout (top section)
+  // Ideally this should be passed as prop or calculated from container
+  stageHeight.value = (window.innerHeight * 0.75) // 75% of screen
 }
 
 // Handle mouse wheel for zoom
@@ -159,14 +218,6 @@ function cleanupBlobUrls() {
   blobUrls.value.clear()
 }
 
-onMounted(() => {
-  window.addEventListener('resize', handleResize)
-  window.addEventListener('mouseup', handleMouseUp)
-})
-
-onUnmounted(() => {
-  cleanupBlobUrls()
-})
 </script>
 
 <template>
@@ -184,7 +235,7 @@ onUnmounted(() => {
     <div class="stage-header">
       <h3>Blueprint Renderer</h3>
       <div class="stage-info">
-        <span>Resolution: {{ baseResolution.w }} x {{ baseResolution.h }}</span>
+        <span>Resolution: {{ baseResolution.w }} x {{ baseResolution.h }} | Time: {{ forgeStore.currentTime.toFixed(0) }}ms</span>
         <span>Zoom: {{ (stageScale * 100).toFixed(0) }}%</span>
       </div>
     </div>
@@ -215,16 +266,16 @@ onUnmounted(() => {
         </Layer>
         
         <!-- Blueprint Layer (wireframe) -->
-        <BlueprintLayer />
+        <BlueprintLayer :frame-state="frameState" />
         
         <!-- Prototype Layer (images) -->
-        <PrototypeLayer />
+        <PrototypeLayer :frame-state="frameState" />
       </Stage>
     </div>
     
     <div class="stage-controls">
       <button @click="stageScale = 1; stageX = 0; stageY = 0">Reset View</button>
-      <span class="hint">💡 Scroll to zoom | Right-click drag to pan</span>
+      <span class="hint">💡 Scroll to zoom | Right-click to pan | Drag images to elements</span>
     </div>
   </div>
 </template>

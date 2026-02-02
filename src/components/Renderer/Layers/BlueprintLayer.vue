@@ -3,8 +3,14 @@ import { computed } from 'vue'
 import { Layer, Rect as VRect, Line as VLine, Text as VText } from 'vue-konva'
 import { useForgeStore } from '@/stores/forge'
 import type { LayoutElement, Rect } from '@/types/manifest'
+import type { FrameState } from '@/logic/sequencer'
 
 const forgeStore = useForgeStore()
+
+// Props
+const props = defineProps<{
+  frameState?: FrameState
+}>()
 
 // Get manifest data
 const manifest = computed(() => forgeStore.manifest)
@@ -42,6 +48,8 @@ const colors = {
 function getColorByType(type: string): string {
   return colors[type as keyof typeof colors] || colors.panel
 }
+
+
 
 // Generate dimension lines for a rect
 function generateDimensionLines(rect: Rect, color: string) {
@@ -125,19 +133,27 @@ const bleedRect = computed(() => {
 })
 
 // Generate all blueprint elements
+// Generate all blueprint elements with animation state applied
 const blueprintElements = computed(() => {
   if (!manifest.value) return []
   
   return layoutElements.value.map(element => {
     const rect = getCurrentRect(element)
     const color = getColorByType(element.type)
+
+    // Apply Animation State
+    let displayRect = { ...rect }
+    if (props.frameState && props.frameState[element.id]) {
+        const state = props.frameState[element.id]
+        displayRect.y += state.offsetY
+    }
     
     return {
       element,
-      rect,
+      rect: displayRect,
       color,
-      dimensionLines: generateDimensionLines(rect, colors.dimension),
-      dimensionTexts: generateDimensionText(rect, colors.text)
+      dimensionLines: generateDimensionLines(displayRect, colors.dimension),
+      dimensionTexts: generateDimensionText(displayRect, colors.text)
     }
   })
 })

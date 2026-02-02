@@ -60,5 +60,21 @@
             },
             "parent_id": "reel_frame"
         }
-    ]
+    ],
+    "rhythm_spec": {
+        "profiles": {
+            "normal": {
+                "spin_duration": 2000,
+                "reel_stop_interval": 300,
+                "bounce_strength": 30
+            },
+            "fast": {
+                "spin_duration": 1000,
+                "reel_stop_interval": 100,
+                "bounce_strength": 30
+            }
+        },
+        "stop_pattern": "sequential",
+        "events": []
+    }
 }

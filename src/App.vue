@@ -4,6 +4,8 @@ import { useForgeStore } from '@/stores/forge'
 import StageContainer from '@/components/Renderer/StageContainer.vue'
 import JsonEditor from '@/components/Editor/JsonEditor.vue'
 import CoordinateInspector from '@/components/Inspector/CoordinateInspector.vue'
+import GanttChart from '@/components/Timeline/GanttChart.vue'
+
 // Data is pre-loaded in main.ts, no need to load here
 
 const forgeStore = useForgeStore()
@@ -14,38 +16,46 @@ const activeTab = ref<'editor' | 'inspector'>('editor')
 
 <template>
   <div class="app-container">
-    <div class="split-layout">
-      <!-- Left: Renderer -->
-      <div class="left-panel">
-        <StageContainer />
+    <div class="main-split">
+      <!-- Top Section: Canvas + Editor -->
+      <div class="top-section">
+        <!-- Left: Renderer -->
+        <div class="left-panel">
+          <StageContainer />
+        </div>
+        
+        <!-- Right: Editor + Inspector with Tabs -->
+        <div class="right-panel">
+          <!-- Tab Header -->
+          <div class="tab-header">
+            <button 
+              :class="['tab-button', { active: activeTab === 'editor' }]"
+              @click="activeTab = 'editor'"
+            >
+              📝 Manifest Editor
+            </button>
+            <button 
+              :class="['tab-button', { active: activeTab === 'inspector' }]"
+              @click="activeTab = 'inspector'"
+            >
+              🔍 Inspector
+            </button>
+          </div>
+
+          <!-- Tab Content -->
+          <div class="tab-content">
+            <JsonEditor v-show="activeTab === 'editor'" />
+            <CoordinateInspector 
+              v-show="activeTab === 'inspector'" 
+              :selected-element="forgeStore.selectedElement"
+            />
+          </div>
+        </div>
       </div>
       
-      <!-- Right: Editor + Inspector with Tabs -->
-      <div class="right-panel">
-        <!-- Tab Header -->
-        <div class="tab-header">
-          <button 
-            :class="['tab-button', { active: activeTab === 'editor' }]"
-            @click="activeTab = 'editor'"
-          >
-            📝 Manifest Editor
-          </button>
-          <button 
-            :class="['tab-button', { active: activeTab === 'inspector' }]"
-            @click="activeTab = 'inspector'"
-          >
-            🔍 Inspector
-          </button>
-        </div>
-
-        <!-- Tab Content -->
-        <div class="tab-content">
-          <JsonEditor v-show="activeTab === 'editor'" />
-          <CoordinateInspector 
-            v-show="activeTab === 'inspector'" 
-            :selected-element="forgeStore.selectedElement"
-          />
-        </div>
+      <!-- Bottom Section: Timeline -->
+      <div class="bottom-panel">
+        <GanttChart />
       </div>
     </div>
   </div>
@@ -56,6 +66,28 @@ const activeTab = ref<'editor' | 'inspector'>('editor')
   width: 100%;
   height: 100vh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-split {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.top-section {
+  flex: 1; /* Takes remaining space */
+  display: flex;
+  min-height: 0; /* Important for nested flex scroll */
+  border-bottom: 2px solid #3f3f46;
+}
+
+.bottom-panel {
+  height: 250px; /* Fixed height for timeline */
+  flex-shrink: 0;
+  background: #18181c;
 }
 
 .split-layout {

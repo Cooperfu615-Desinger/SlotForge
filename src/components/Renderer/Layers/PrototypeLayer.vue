@@ -3,8 +3,14 @@ import { computed, ref, watch } from 'vue'
 import { Layer, Rect as VRect, Image as VImage } from 'vue-konva'
 import { useForgeStore } from '@/stores/forge'
 import type { LayoutElement, Rect } from '@/types/manifest'
+import type { FrameState } from '@/logic/sequencer'
 
 const forgeStore = useForgeStore()
+
+// Props
+const props = defineProps<{
+  frameState?: FrameState
+}>()
 
 // Get manifest data
 const manifest = computed(() => forgeStore.manifest)
@@ -75,9 +81,18 @@ const prototypeElements = computed(() => {
       const color = getColorByType(element.type)
       const image = element.asset_url ? imageCache.value.get(element.asset_url) : null
       
+      // Apply Animation State
+      let displayRect = { ...rect }
+      if (props.frameState && props.frameState[element.id]) {
+        const state = props.frameState[element.id]
+        displayRect.y += state.offsetY
+        // scaleY handling could be added here if we were doing scaling transform
+        // opacity, blur handling would go here too
+      }
+      
       return {
         element,
-        rect,
+        rect: displayRect,
         color,
         image,
         hasAsset: !!element.asset_url
