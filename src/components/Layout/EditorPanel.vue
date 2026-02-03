@@ -1,107 +1,118 @@
 <script setup lang="ts">
-import { useForgeStore } from '@/stores/forge'
-import CoordinateInspector from '@/components/Inspector/CoordinateInspector.vue'
-import JsonEditor from '@/components/Editor/JsonEditor.vue'
-
-const forgeStore = useForgeStore()
+// Simplified mock panel for visual matching
+// import { useForgeStore } from '@/stores/forge'
+// const forgeStore = useForgeStore()
 </script>
 
 <template>
-  <div class="h-full flex flex-col bg-white">
+  <div class="h-full flex flex-col bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden text-slate-800 font-sans">
     <!-- Header -->
-    <div class="flex-none p-4">
-      <h2 class="text-lg font-bold text-gray-800">Inspector</h2>
+    <div class="flex-none pt-6 px-6 pb-2">
+      <h2 class="text-xl font-black tracking-wide text-slate-900">參數區</h2>
     </div>
     
     <!-- Inspector (Scrollable) -->
-    <div class="flex-1 overflow-y-auto px-4 pb-4 space-y-6">
+    <div class="flex-1 overflow-y-auto px-6 pb-6 space-y-8">
       
-      <!-- Coordinate Algebra (New Web vs Creator) -->
-      <section class="bg-gray-50 p-3 rounded-lg border border-gray-100">
-         <div class="flex justify-between items-center mb-2">
-             <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">Coordinates</div>
-         </div>
-         <div class="grid grid-cols-2 gap-4">
-            <div>
-               <div class="text-[10px] text-gray-400 mb-1">CREATOR (COCOS)</div>
-               <div class="font-mono text-sm font-bold text-gray-700">0, 0</div>
-            </div>
-            <div>
-               <div class="text-[10px] text-gray-400 mb-1">WEB (KONVA)</div>
-               <div class="font-mono text-sm font-bold text-blue-600">640, 360</div>
-            </div>
-         </div>
-         <div class="mt-2 pt-2 border-t border-gray-200 text-[10px] font-mono text-gray-400">
-            x_web = x_cocos + 1280/2<br>
-            y_web = 720/2 - y_cocos
-         </div>
-      </section>
-
-      <!-- Basic Info -->
+      <!-- Basic Info Section -->
       <section>
-        <h3 class="font-bold text-gray-700 mb-2 text-sm uppercase tracking-wider">Object Properties</h3>
-        <div class="space-y-2 text-sm">
-           <!-- Mock Fields for visual match -->
+        <h3 class="font-bold text-slate-900 mb-3 text-base">基本資訊</h3>
+        <div class="space-y-3">
+           <!-- Row: ID -->
            <div class="grid grid-cols-[80px_1fr] items-center gap-2">
-             <label class="text-gray-400 font-medium">ID</label>
-             <div class="bg-gray-50 border border-gray-100 rounded px-2 py-1 flex justify-between items-center text-gray-600">
-               <span>R1_C1</span>
-               <span>📋</span>
+             <label class="text-slate-500 font-bold text-sm">ID :</label>
+             <div class="group relative flex items-center">
+                <input type="text" value="R1_C1" readonly class="w-full bg-gray-100/80 rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 border border-transparent focus:bg-white focus:border-blue-400 transition-colors outline-none" />
+                <span class="absolute right-2 text-slate-400 cursor-pointer hover:text-slate-600">📄</span>
              </div>
            </div>
            
+           <!-- Row: Name -->
            <div class="grid grid-cols-[80px_1fr] items-center gap-2">
-             <label class="text-gray-400 font-medium">Name</label>
-             <div class="bg-gray-50 border border-gray-100 rounded px-2 py-1 flex justify-between items-center text-gray-600">
-               <span>Symbol R1-C1</span>
-               <span>📋</span>
+             <label class="text-slate-500 font-bold text-sm">Name :</label>
+             <div class="group relative flex items-center">
+                <input type="text" value="Symbol R1-C1" readonly class="w-full bg-gray-100/80 rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 border border-transparent focus:bg-white focus:border-blue-400 transition-colors outline-none" />
+                <span class="absolute right-2 text-slate-400 cursor-pointer hover:text-slate-600">📄</span>
              </div>
            </div>
 
+           <!-- Row: Type -->
            <div class="grid grid-cols-[80px_1fr] items-center gap-2">
-             <label class="text-gray-400 font-medium">Type</label>
-             <div class="bg-gray-50 border border-gray-100 rounded px-2 py-1 flex justify-between items-center text-gray-600">
-               <span>symbol</span>
-               <span>📋</span>
+             <label class="text-slate-500 font-bold text-sm">Type :</label>
+             <div class="group relative flex items-center">
+                <input type="text" value="symbol" readonly class="w-full bg-gray-100/80 rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 border border-transparent focus:bg-white focus:border-blue-400 transition-colors outline-none" />
+                <span class="absolute right-2 text-slate-400 cursor-pointer hover:text-slate-600">📄</span>
              </div>
            </div>
            
+           <!-- Row: Anchor -->
             <div class="grid grid-cols-[80px_1fr] items-center gap-2">
-             <label class="text-gray-400 font-medium">Anchor</label>
-             <div class="bg-gray-50 border border-gray-100 rounded px-2 py-1 flex justify-between items-center text-gray-600">
-               <span>top-left</span>
-               <span>📋</span>
+             <label class="text-slate-500 font-bold text-sm">Anchor :</label>
+             <div class="group relative flex items-center">
+                <input type="text" value="top-left" readonly class="w-full bg-gray-100/80 rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 border border-transparent focus:bg-white focus:border-blue-400 transition-colors outline-none" />
+                <span class="absolute right-2 text-slate-400 cursor-pointer hover:text-slate-600">📄</span>
              </div>
            </div>
 
+           <!-- Row: Z-Index -->
            <div class="grid grid-cols-[80px_1fr] items-center gap-2">
-             <label class="text-gray-400 font-medium">Z-Index</label>
-             <div class="bg-gray-50 border border-gray-100 rounded px-2 py-1 flex justify-between items-center text-gray-600">
-               <span>10</span>
-               <span>📋</span>
+             <label class="text-slate-500 font-bold text-sm">Z-Index :</label>
+             <div class="group relative flex items-center">
+                <input type="text" value="10" readonly class="w-full bg-gray-100/80 rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 border border-transparent focus:bg-white focus:border-blue-400 transition-colors outline-none" />
+                <span class="absolute right-2 text-slate-400 cursor-pointer hover:text-slate-600">📄</span>
              </div>
            </div>
         </div>
       </section>
 
-      <!-- Coordinate Inspector (Actual Component Reuse) -->
+      <!-- Coordinates and Transform Section -->
       <section>
-         <h3 class="font-bold text-gray-700 mb-2 text-sm uppercase tracking-wider">Transform</h3>
-         <CoordinateInspector 
-          :selected-element="forgeStore.selectedElement"
-        />
+         <div class="grid grid-cols-2 gap-8 mb-2 border-b border-slate-100 pb-2">
+             <h3 class="font-bold text-slate-900 text-sm">Creator 座標</h3>
+             <h3 class="font-bold text-slate-900 text-sm">Web 座標</h3>
+         </div>
+         
+         <!-- Mock tabular data for coordinates to match image -->
+         <div class="grid grid-cols-2 gap-8 text-sm font-mono text-slate-600 mb-4">
+            <div class="space-y-2">
+                <div class="flex justify-between"><span>X :</span><span>-70.00</span></div>
+                <div class="flex justify-between"><span>Y :</span><span>230.00</span></div>
+                <div class="flex justify-between"><span>W :</span><span>160</span></div>
+                <div class="flex justify-between"><span>H :</span><span>160</span></div>
+            </div>
+            <div class="space-y-2">
+                <div class="flex justify-between"><span>X :</span><span>570px</span></div>
+                <div class="flex justify-between"><span>Y :</span><span>130px</span></div>
+                <div class="flex justify-between"><span>W :</span><span>160px</span></div>
+                <div class="flex justify-between"><span>H :</span><span>160px</span></div>
+            </div>
+         </div>
+
+         <!-- Formula Box -->
+         <div class="bg-gray-200/50 p-3 rounded-lg text-xs font-mono text-slate-500 leading-relaxed">
+            x_cocos = (570 - 1280/2) + (0 * 160) = -70<br>
+            y_cocos = (720/2 - 130) - (0 * 160) = 230
+         </div>
       </section>
       
     </div>
     
     <!-- JSON Editor (Fixed Height at Bottom) -->
-    <div class="h-1/3 border-t border-gray-100 bg-gray-50 flex flex-col">
-       <div class="p-2 border-b border-gray-200 flex justify-between items-center bg-gray-100">
-         <span class="font-bold text-gray-700 text-xs uppercase tracking-wider">Manifest JSON</span>
-         <span class="text-[10px] text-gray-500">READ ONLY</span>
+    <div class="h-1/4 border-t border-slate-100 bg-white flex flex-col">
+       <div class="px-6 py-3 border-b border-transparent flex justify-between items-center">
+         <span class="font-bold text-slate-900">JSON</span>
        </div>
-       <div class="flex-1 overflow-hidden relative">
-         <JsonEditor />
+       <div class="flex-1 overflow-hidden relative mx-6 mb-6 bg-gray-200/50 rounded-xl p-4">
+         <div class="text-xs font-mono text-slate-500 h-full overflow-hidden opacity-70">
+            MANIFEST EDITOR<br>
+            {<br>
+            &nbsp;&nbsp;"meta": {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;"project_name": "SlotForge",<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;...<br>
+            &nbsp;&nbsp;}<br>
+            }
+         </div>
+         <span class="absolute top-4 right-4 text-slate-400">📄</span>
        </div>
     </div>
   </div>
