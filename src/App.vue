@@ -1,54 +1,52 @@
 <script setup lang="ts">
-import WorldLayer from './components/World/WorldLayer.vue'
-import TopNavBar from './components/HUD/TopNavBar.vue'
-import InspectorPanel from './components/HUD/InspectorPanel.vue'
-import TimelinePlayer from './components/HUD/TimelinePlayer.vue'
-import { useForgeStore } from '@/stores/forge'
+import { NConfigProvider, type GlobalThemeOverrides, NMessageProvider } from 'naive-ui'
+import DeviceContainer from './components/DeviceContainer.vue'
+import GameRenderer from './components/GameRenderer.vue'
+import InspectorPanel from './components/InspectorPanel.vue'
 
-// Ensure store is initialized if needed
-useForgeStore()
-// forgeStore.loadManifest() is called in main.ts, so we are good.
+const lightTheme: GlobalThemeOverrides = {
+  common: {
+    baseColor: '#FFFFFF',
+    primaryColor: '#18a058',
+  },
+}
 </script>
 
 <template>
-  <div class="app-container w-screen h-screen overflow-hidden bg-slate-100 font-sans text-slate-800">
-    
-    <!-- 1. Bottom Layer: World (Infinite Canvas) -->
-    <!-- Handles its own z-index relative to content, but here it's the base -->
-    <WorldLayer class="absolute inset-0 z-0" />
+  <n-config-provider :theme-overrides="lightTheme">
+    <n-message-provider>
+      <div class="h-screen w-screen grid grid-cols-[1fr_320px] grid-rows-[64px_1fr_256px] bg-gray-100 overflow-hidden">
+        
+        <!-- Top Bar: Global Nav -->
+        <header class="col-span-2 row-span-1 bg-white border-b border-gray-200 shadow-sm flex items-center px-4 z-10">
+          <h1 class="text-xl font-bold text-gray-800">SlotForge <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded ml-2">V2.0</span></h1>
+        </header>
 
-    <!-- 2. Middle Layer: HUD (Static, Floating) -->
-    <!-- pointer-events-none ensures clicks pass through to WorldLayer where there is no HUD UI -->
-    <div class="hud-layer absolute inset-0 z-10 pointer-events-none flex flex-col justify-between">
-      
-      <!-- Top Bar -->
-      <header class="w-full">
-        <TopNavBar />
-      </header>
-      
-      <!-- Middle Area (Inspector on Right) -->
-      <main class="flex-1 relative">
-        <InspectorPanel class="absolute right-0 top-4 bottom-4 m-4 rounded-xl" />
-      </main>
-      
-      <!-- Bottom Bar (Timeline) -->
-      <footer class="w-full flex justify-center pb-6">
-        <TimelinePlayer />
-      </footer>
+        <!-- Center Stage: Viewport -->
+        <main class="col-span-1 row-span-1 relative flex items-center justify-center overflow-hidden">
+          <DeviceContainer>
+            <GameRenderer />
+          </DeviceContainer>
+        </main>
 
-    </div>
+        <!-- Right Panel: Inspector -->
+        <aside class="col-span-1 row-span-2 bg-white border-l border-gray-200 shadow-sm flex flex-col z-10 overflow-hidden">
+          <InspectorPanel />
+        </aside>
 
-    <!-- 3. Top Layer: Modals / Interaction (if any) -->
-    <!-- Reserved for future drag-ghosts or global modals -->
+        <!-- Bottom Panel: Sequencer -->
+        <section class="col-span-1 row-span-1 bg-white border-t border-gray-200 shadow-sm z-10">
+          <div class="p-2 border-b border-gray-100 font-bold text-xs text-gray-500 uppercase tracking-wider">Sequencer Timeline</div>
+          <div class="p-4 text-center text-gray-400">
+            GSAP Timeline Control
+          </div>
+        </section>
 
-  </div>
+      </div>
+    </n-message-provider>
+  </n-config-provider>
 </template>
 
 <style>
-/* Global resets if not covered by Tailwind/style.css */
-body {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
+/* Reset handles by global style.css */
 </style>

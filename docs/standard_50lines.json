@@ -1,0 +1,29 @@
+{
+  "meta": {
+    "project_name": "Zeus_V2",
+    "base_resolution": { "w": 1280, "h": 720 },
+    "orientation": "landscape"
+  },
+  "layout_elements": [
+    {
+      "id": "bg_main",
+      "type": "bg",
+      "name": "Main Background",
+      "z_index": 0,
+      "anchor": "top-left",
+      "rect_landscape": { "x": 0, "y": 0, "w": 1280, "h": 720 },
+      "rect_portrait": { "x": 0, "y": 0, "w": 720, "h": 1280 },
+      "asset_src": "assets/ui/bg_base.png"
+    },
+    {
+      "id": "reel_frame",
+      "type": "reel",
+      "name": "Reel 1",
+      "z_index": 10,
+      "anchor": "top-left",
+      "rect_landscape": { "x": 300, "y": 100, "w": 160, "h": 500 },
+      "rect_portrait": { "x": 50, "y": 200, "w": 160, "h": 500 },
+      "asset_src": "assets/ui/reel_strip_bg.png"
+    }
+  ]
+}

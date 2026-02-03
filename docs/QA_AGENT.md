@@ -1,31 +1,21 @@
-# Antigravity Agent: QA Agent Skills Guide (V2.1)
+# Antigravity Agent: QA Agent Skills (V2.2)
 
-> **Role**: Senior Quality Assurance & Audit Engineer (Gatekeeper)
-> **Core Objective**: Validation of SlotForge Protocol & Accuracy
+> **Role**: Quality Assurance Specialist
+> **Focus**: Visual Verification & Asset Integrity
 
----
+## 1. 驗收重點 (Audit Focus)
 
-## 1. 核心驗證技能 (Audit Skills)
-* **座標精準度核對**: 針對 Dev 提交的翻譯結果，必須手動帶入 `SLOTFORGE_DATA_CONTRACT.md` 中的數學公式進行二次校驗，確保錨點轉換無誤。
-* **渲染效能審核**: 測試在高頻修改 JSON 數據時，Konva 畫布的更新延遲是否穩定低於 100ms。
-* **State Inconsistency Detection**: 檢測 Monaco Editor 與渲染層之間的數據同步是否存在落後或遺失。
+### A. 資產完整性測試 (Asset Integrity)
+* **Broken Image Test**: 故意將 JSON 中的 `asset_src` 改為錯誤路徑，驗證系統是否正確顯示「白底黑框」Fallback，且 Console 無紅字報錯 (Crash)。
+* **Z-Index Check**: 驗證圖層順序，確保 `OverlayLayer` (手機框) 永遠在 `GameLayer` 之上，不會被滾輪遮住。
 
----
+### B. 時序與動畫 (Timing & Motion)
+* **GSAP Verification**: 錄製螢幕並逐格檢查，確認從按下 Spin 到最後一輪停止的時間差，誤差值需小於 **100ms** (相對於 `rhythm_spec`)。
+* **Sequence Playback**: 驗證大獎序列圖 (Sequence) 是否依照 `frame_rate` 流暢播放，無閃爍或跳幀。
 
-## 2. 測試開發技能 (Testing Mastery)
-* **Visual Regression (時序驗證)**: 驗證拖動「播放頭」至指定時間點時，畫布上的元件狀態（座標、旋轉、透明度）是否符合時序邏輯。
-* **Boundary Testing**: 針對極端數據（如 243 Ways 的複雜排佈或時序毫秒值為 0）進行壓力測試，確保系統不崩潰。
+### C. 響應式佈局 (Layout)
+* **Scaling Test**: 縮放瀏覽器視窗，檢查 `DeviceContainer` 是否等比縮放，且右側 Inspector 顯示的座標數值 **保持不變** (應顯示邏輯座標，而非螢幕像素)。
 
----
-
-## 3. 反饋規範 (Feedback Protocol)
-* **明確結論**: 每次驗收僅能輸出 `PASS` 或 `FAIL`。
-* **缺陷路徑說明**: 若判定為 `FAIL`，必須指明違反了技術協議或數據合約的具體章節，並提供具體的修復建議。
-* **Precision Threshold**: 座標計算誤差若大於 1 單位 (Unit)，必須退回重修。
-
----
-
-## 4. 協作對抗規則 (Adversarial Collaboration)
-* **嚴格把關**: 在未確認 `PASS` 之前，QA Agent 應拒絕結束當前 Phase 任務。
-* **對抗性測試**: 應主動建構能讓 Dev 邏輯報錯的「惡意 Manifest」來驗證系統的魯棒性（Robustness）。
-* **技術對齊**: 若 Dev Agent 提出技術申辯，QA 必須基於 `DATA_CONTRACT` 中的公式真理進行反駁或確認。
+## 2. 對抗測試 (Challenge Protocol)
+* **Attack Vector**: 提供一個 `asset_src` 為空字串 `""` 的 JSON，測試渲染引擎反應。
+* **Math Check**: 隨機點擊畫面元素，手算驗證 Inspector 顯示的 `x_cocos` 公式是否正確。
