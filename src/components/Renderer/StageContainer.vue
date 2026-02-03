@@ -54,11 +54,14 @@ onUnmounted(() => {
   <div class="phone-group relative select-none">
     
     <!-- TOP LAYER: Phone Frame (Z-20) -->
-    <img 
-      src="@/assets/iphone_frame.png" 
-      class="pointer-events-none absolute inset-0 w-full h-full z-20 object-contain drop-shadow-2xl"
-      alt="iPhone Frame"
-    />
+    <!-- Added fallback styles: dashed border if image fails or is transparent -->
+    <div class="pointer-events-none absolute inset-0 z-20 pointer-events-none border-4 border-dashed border-gray-300/50 rounded-[3rem] overflow-hidden">
+      <img 
+        src="@/assets/iphone_frame.png" 
+        class="w-full h-full object-contain drop-shadow-2xl"
+        alt="iPhone Frame"
+      />
+    </div>
 
     <!-- MIDDLE LAYER: HTML UI (Z-10) -->
     <!-- Positioned absolutely to match the 1280x720 screen area -->
