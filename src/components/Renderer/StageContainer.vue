@@ -1,411 +1,151 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, watch, onUnmounted } from 'vue'
 import { Stage, Layer, Rect as VRect } from 'vue-konva'
 import BlueprintLayer from './Layers/BlueprintLayer.vue'
-import PrototypeLayer from './Layers/PrototypeLayer.vue'
 import { useForgeStore } from '@/stores/forge'
 import { getFrameState, type FrameState } from '@/logic/sequencer'
-import { useAutoFit } from '@/composables/useAutoFit'
 
 const forgeStore = useForgeStore()
-
-// Container ref
-const containerRef = ref<HTMLElement | null>(null)
-
-// Get orientation and base resolution from manifest
-const orientation = computed(() => forgeStore.orientation)
-const baseResolution = computed(() => forgeStore.baseResolution)
-
-// Auto-fit logic
-const {
-  scaleFactor,
-  stageWidth,
-  stageHeight,
-  stageOffsetX,
-  stageOffsetY,
-  screenToStage
-} = useAutoFit({
-  baseResolution,
-  containerRef,
-  orientation,
-  manualZoom: computed(() => forgeStore.manualZoom)
-})
-
-// Mouse position tracking
-const mousePosition = ref({ x: 0, y: 0 })
-
-function handleMouseMove(e: MouseEvent) {
-  const stagePos = screenToStage(e.clientX, e.clientY)
-  mousePosition.value = stagePos
-}
 
 // --- Render Loop & Sequencer ---
 const frameState = ref<FrameState>({})
 let animationFrameId: number | null = null
 let lastTime = 0
 
-// Compute frame state when time changes (Passive)
-watch(
-  [() => forgeStore.currentTime, () => forgeStore.rhythmSpec, () => forgeStore.layoutElements],
-  ([currentTime, rhythmSpec, layoutElements]) => {
-    if (layoutElements) {
-        frameState.value = getFrameState(currentTime, rhythmSpec, layoutElements)
+function animate(time: number) {
+  const delta = time - lastTime
+  lastTime = time
+  
+  if (forgeStore.isPlaying) {
+    const newTime = forgeStore.currentTime + delta
+    forgeStore.setTime(newTime)
+    
+    // Check if getFrameState signature matches. Assuming it does or we simplify.
+    // frameState.value = getFrameState(forgeStore.currentTime, forgeStore.rhythmSpec, forgeStore.layoutElements)
+    // Note: getFrameState might expect valid specs. We pass what we have.
+    if (forgeStore.layoutElements) {
+         frameState.value = getFrameState(forgeStore.currentTime, forgeStore.rhythmSpec, forgeStore.layoutElements)
     }
-  },
-  { immediate: true }
-)
-
-// Active Playback Loop
-function animate(timestamp: number) {
-    if (!lastTime) lastTime = timestamp
-    const deltaTime = timestamp - lastTime
-    lastTime = timestamp
-
-    if (forgeStore.isPlaying) {
-        const newTime = forgeStore.currentTime + deltaTime
-        
-        if (newTime > 5000) {
-            forgeStore.setTime(0)
-        } else {
-            forgeStore.setTime(newTime)
-        }
-    }
-
-    animationFrameId = requestAnimationFrame(animate)
+  }
+  animationFrameId = requestAnimationFrame(animate)
 }
 
-// Start/Stop Loop
-onMounted(() => {
+watch(() => forgeStore.isPlaying, (playing) => {
+  if (playing) {
+    lastTime = performance.now()
     animationFrameId = requestAnimationFrame(animate)
+  } else {
+    // Stop animation
+    if (animationFrameId !== null) {
+      cancelAnimationFrame(animationFrameId)
+      animationFrameId = null
+    }
+  }
 })
 
 onUnmounted(() => {
-  cleanupBlobUrls()
   if (animationFrameId !== null) {
       cancelAnimationFrame(animationFrameId)
   }
 })
-
-// Drag & Drop state
-const isDraggingFile = ref(false)
-const blobUrls = ref<Set<string>>(new Set())
-
-function handleDragOver(e: DragEvent) {
-  e.preventDefault()
-  if (e.dataTransfer) {
-    e.dataTransfer.dropEffect = 'copy'
-  }
-  isDraggingFile.value = true
-}
-
-function handleDragLeave() {
-  isDraggingFile.value = false
-}
-
-async function handleDrop(e: DragEvent) {
-  e.preventDefault()
-  isDraggingFile.value = false
-  
-  const files = e.dataTransfer?.files
-  if (!files || files.length === 0) return
-  
-  const file = files[0]
-  if (!file.type.startsWith('image/')) {
-    alert('Please drop an image file')
-    return
-  }
-  
-  const blobUrl = URL.createObjectURL(file)
-  blobUrls.value.add(blobUrl)
-  
-  const stagePos = screenToStage(e.clientX, e.clientY)
-  
-  const targetElement = forgeStore.layoutElements.find(el => {
-    const elementRect = forgeStore.orientation === 'landscape' 
-      ? el.rect_landscape 
-      : el.rect_portrait
-    return (
-      stagePos.x >= elementRect.x &&
-      stagePos.x <= elementRect.x + elementRect.w &&
-      stagePos.y >= elementRect.y &&
-      stagePos.y <= elementRect.y + elementRect.h
-    )
-  })
-  
-  if (targetElement) {
-    forgeStore.updateElementAsset(targetElement.id, blobUrl)
-  } else {
-    alert('Please drop the image on an element')
-    URL.revokeObjectURL(blobUrl)
-    blobUrls.value.delete(blobUrl)
-  }
-}
-
-function cleanupBlobUrls() {
-  blobUrls.value.forEach(url => URL.revokeObjectURL(url))
-  blobUrls.value.clear()
-}
-
 </script>
 
 <template>
-  <div 
-    ref="containerRef"
-    class="stage-container"
-    :class="[
-      { 'dragging-file': isDraggingFile },
-      orientation === 'landscape' ? 'landscape' : 'portrait'
-    ]"
-    @dragover="handleDragOver"
-    @dragleave="handleDragLeave"
-    @drop="handleDrop"
-    @mousemove="handleMouseMove"
-  >
-    <div class="stage-wrapper" :style="{
-      transform: `translate(${stageOffsetX}px, ${stageOffsetY}px)`
-    }">
-      <Stage
-        :config="{
-          width: stageWidth,
-          height: stageHeight,
-          scaleX: scaleFactor,
-          scaleY: scaleFactor,
-          x: 0,
-          y: 0
-        }"
-      >
-        <!-- Background Layer -->
+  <div class="phone-group relative select-none">
+    
+    <!-- TOP LAYER: Phone Frame (Z-20) -->
+    <img 
+      src="@/assets/iphone_frame.png" 
+      class="pointer-events-none absolute inset-0 w-full h-full z-20 object-contain drop-shadow-2xl"
+      alt="iPhone Frame"
+    />
+
+    <!-- MIDDLE LAYER: HTML UI (Z-10) -->
+    <!-- Positioned absolutely to match the 1280x720 screen area -->
+    <div 
+      class="phone-ui absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col justify-between p-4"
+      :style="{ width: '1280px', height: '720px' }"
+    >
+       <!-- UI elements extracted from previous version -->
+       <!-- Dynamic Island (Visual Mock handled by image, but we can add interactive trigger area) -->
+       <div class="absolute top-2 left-1/2 -translate-x-1/2 w-32 h-8 z-30 opacity-0 hover:opacity-20 bg-yellow-500 cursor-pointer" title="Dynamic Island Trigger"></div>
+
+       <!-- Header Area -->
+       <div class="flex justify-between items-start pointer-events-auto">
+          <div class="jackpot-banner px-6 py-2 bg-white border-2 border-gray-800 rounded-lg shadow-[4px_4px_0_0_rgba(31,41,55,1)] font-bold text-xl">
+            JACKPOT
+          </div>
+          <div class="game-logo text-right font-black text-3xl leading-none px-4 drop-shadow-lg text-white">
+            SLOT<br>FORGE
+          </div>
+       </div>
+
+       <!-- Main Content Area -->
+       <div class="flex-1 flex items-center gap-4 my-2">
+          <!-- Left: Buy Feature -->
+          <div class="flex flex-col gap-2 pointer-events-auto">
+             <button class="w-24 h-20 bg-white border-2 border-gray-800 rounded-lg shadow-[4px_4px_0_0_rgba(31,41,55,1)] flex flex-col items-center justify-center font-bold hover:translate-y-1 hover:shadow-none transition-all">
+                <span>BUY</span>
+                <span class="text-xs">FEATURE</span>
+             </button>
+          </div>
+
+          <!-- Center: Grid Placeholder -->
+          <div class="flex-1 h-full mx-4 border-2 border-dashed border-gray-400/50 rounded-xl flex items-center justify-center bg-black/10">
+             <div class="text-white/50 font-mono text-sm">3x5 REEL GRID AREA (KONVA BEHIND)</div>
+          </div>
+       </div>
+
+       <!-- Bottom Controls -->
+       <div class="control-bar flex items-center justify-between gap-4 pointer-events-auto">
+          <button class="text-3xl text-white hover:scale-110 transition-transform">≡</button>
+          
+          <div class="flex-1 flex justify-center gap-4">
+             <div class="info-box bg-gray-900/80 text-white border border-gray-700 rounded-full px-6 py-1 min-w-[160px] text-center backdrop-blur-sm">
+                <div class="text-[10px] text-gray-400 font-bold tracking-wider">BALANCE</div>
+                <div class="font-mono text-lg font-bold">$ 999,999.00</div>
+             </div>
+             <div class="info-box bg-gray-900/80 text-white border border-gray-700 rounded-full px-6 py-1 min-w-[160px] text-center backdrop-blur-sm">
+                <div class="text-[10px] text-gray-400 font-bold tracking-wider">BET</div>
+                <div class="font-mono text-lg font-bold">5.00</div>
+             </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+             <button class="w-10 h-10 rounded-full bg-gray-200 border-2 border-gray-800 flex items-center justify-center text-xl shadow-[2px_2px_0_0_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-none">⚡</button>
+             <button class="w-20 h-20 rounded-full bg-green-500 border-4 border-white shadow-lg flex items-center justify-center text-4xl text-white hover:scale-105 active:scale-95 transition-transform">🔄</button>
+          </div>
+       </div>
+    </div>
+
+    <!-- BOTTOM LAYER: Konva Stage (Z-0) -->
+    <!-- Fixed size 1280x720, Centered -->
+    <div 
+      class="konva-container absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0 bg-white overflow-hidden"
+      :style="{ width: '1280px', height: '720px' }"
+    >
+      <Stage :config="{ width: 1280, height: 720 }">
         <Layer>
-          <VRect
-            :config="{
-              x: 0,
-              y: 0,
-              width: stageWidth,
-              height: stageHeight,
-              fill: '#000',
-              listening: false
-            }"
-          />
+          <!-- Background -->
+          <VRect :config="{ x: 0, y: 0, width: 1280, height: 720, fill: '#1F2937' }" /> 
+          <!-- Grid Lines (Subtle) -->
+          <VRect :config="{ x: 0, y: 0, width: 1280, height: 720, fillPatternImage: null, stroke: '#374151', strokeWidth: 20, strokeScaleEnabled: false }" />
         </Layer>
         
-        <!-- Blueprint Layer (wireframe) -->
         <BlueprintLayer :frame-state="frameState" />
-        
-        <!-- Prototype Layer (images) -->
-        <PrototypeLayer :frame-state="frameState" />
       </Stage>
     </div>
-    
-    <!-- Dynamic Island (toggleable) -->
-    <div 
-      v-if="forgeStore.showDynamicIsland" 
-      class="dynamic-island"
-      :class="{ 'portrait': orientation === 'portrait' }"
-    >
-    </div>
-    
-    <!-- Safe Area Guide (toggleable) -->
-    <div 
-      v-if="forgeStore.showSafeAreaGuide" 
-      class="safe-area-guide"
-      :style="{
-        top: `${forgeStore.artSpec?.safe_area_margin || 40}px`,
-        left: `${forgeStore.artSpec?.safe_area_margin || 40}px`,
-        right: `${forgeStore.artSpec?.safe_area_margin || 40}px`,
-        bottom: `${forgeStore.artSpec?.safe_area_margin || 40}px`
-      }"
-    >
-    </div>
-    
-    <!-- Toggle Buttons -->
-    <div class="ui-toggles">
-      <button 
-        class="toggle-btn" 
-        @click="forgeStore.toggleDynamicIsland"
-        :title="forgeStore.showDynamicIsland ? 'Hide Dynamic Island' : 'Show Dynamic Island'"
-      >
-        {{ forgeStore.showDynamicIsland ? '👁️' : '👁️‍🗨️' }}
-      </button>
-      <button 
-        class="toggle-btn" 
-        @click="forgeStore.toggleSafeAreaGuide"
-        :title="forgeStore.showSafeAreaGuide ? 'Hide Safe Area' : 'Show Safe Area'"
-      >
-        {{ forgeStore.showSafeAreaGuide ? '🔲' : '⬜' }}
-      </button>
-    </div>
-    
-    <!-- Info Overlay -->
-    <div class="stage-info-overlay">
-      <span>{{ baseResolution.w }} × {{ baseResolution.h }}</span>
-      <span>{{ orientation }}</span>
-      <span>{{ forgeStore.currentTime.toFixed(0) }}ms</span>
-      <span>{{ (scaleFactor * 100).toFixed(0) }}%</span>
-    </div>
-    
-    <!-- Mouse Position Debug -->
-    <div class="mouse-position-overlay">
-      <span>X: {{ Math.round(mousePosition.x) }}</span>
-      <span>Y: {{ Math.round(mousePosition.y) }}</span>
-    </div>
+
   </div>
 </template>
 
 <style scoped>
-.stage-container {
-  position: relative;
-  width: 100%;
-  max-width: 600px;
-  
-  /* Phone shell styling */
-  border: 8px solid #333;
-  border-radius: 3rem;
-  box-shadow: 
-    0 25px 50px -12px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.1),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-  
-  overflow: hidden;
-  background: #000;
-  cursor: crosshair;
+.phone-group {
+  /* Define the total size of the Phone + Bezel */
+  /* iPhone 15 Pro Max is ~ 160mm x 77mm. Aspect ~ 19.5:9 */
+  /* We define a fixed logical size for the container, and WorldContainer scales it */
+  width: 1450px;
+  height: 850px;
+  background: transparent;
 }
-
-/* Dynamic aspect ratio based on orientation */
-.stage-container.landscape {
-  aspect-ratio: 16 / 9;
-}
-
-.stage-container.portrait {
-  aspect-ratio: 9 / 16;
-}
-
-.stage-wrapper {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
-/* Info Overlay */
-.stage-info-overlay {
-  position: absolute;
-  bottom: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  
-  display: flex;
-  gap: 0.75rem;
-  padding: 0.5rem 1rem;
-  
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 9999px;
-  
-  font-size: 0.7rem;
-  color: #a1a1aa;
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  
-  z-index: 100;
-  pointer-events: none;
-}
-
-.stage-info-overlay span {
-  white-space: nowrap;
-}
-
-/* Mouse Position Overlay */
-.mouse-position-overlay {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  
-  display: flex;
-  gap: 0.75rem;
-  padding: 0.5rem 1rem;
-  
-  background: rgba(167, 139, 250, 0.2);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(167, 139, 250, 0.3);
-  border-radius: 0.5rem;
-  
-  font-size: 0.7rem;
-  color: #a78bfa;
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  
-  z-index: 100;
-  pointer-events: none;
-}
-
-.mouse-position-overlay span {
-  white-space: nowrap;
-}
-
-/* Dynamic Island */
-.dynamic-island {
-  position: absolute;
-  width: 120px;
-  height: 35px;
-  background: #000;
-  border-radius: 20px;
-  box-shadow: 
-    inset 0 2px 4px rgba(255, 255, 255, 0.1),
-    0 4px 8px rgba(0, 0, 0, 0.5);
-  z-index: 200;
-  pointer-events: none;
-  
-  /* Landscape: left side */
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.dynamic-island.portrait {
-  /* Portrait: top center */
-  left: 50%;
-  top: 1rem;
-  transform: translateX(-50%);
-  width: 100px;
-  height: 30px;
-}
-
-/* Safe Area Guide */
-.safe-area-guide {
-  position: absolute;
-  border: 2px solid rgba(255, 0, 0, 0.5);
-  border-radius: 0.5rem;
-  pointer-events: none;
-  z-index: 150;
-  background: rgba(255, 0, 0, 0.05);
-}
-
-/* UI Toggle Buttons */
-.ui-toggles {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  display: flex;
-  gap: 0.5rem;
-  z-index: 250;
-}
-
-.toggle-btn {
-  width: 32px;
-  height: 32px;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-}
-
-.toggle-btn:hover {
-  background: rgba(0, 0, 0, 0.9);
-  transform: scale(1.1);
-}
-
 </style>

@@ -12,70 +12,46 @@ function togglePlay() {
 </script>
 
 <template>
-  <div class="player-bar">
-    <!-- FAB Play Button -->
-    <button class="fab-play" @click="togglePlay" :class="{ playing: isPlaying }">
-      <span v-if="!isPlaying">▶</span>
-      <span v-else>⏸</span>
-    </button>
+  <div class="w-full h-full bg-white border border-gray-200 rounded-2xl shadow-lg flex items-center p-4 gap-4">
+    <!-- Play Control -->
+    <div class="flex-none flex flex-col items-center gap-2 border-r pr-4 border-gray-100">
+      <div class="flex gap-2 mb-1">
+        <span class="text-[10px] text-gray-400 font-bold uppercase">Average Spin</span>
+        <button class="bg-red-500 text-white text-[10px] px-2 rounded-full">Fast SPIN</button>
+      </div>
+
+      <button 
+        class="w-16 h-16 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg hover:scale-105 transition-transform active:scale-95"
+        @click="togglePlay"
+      >
+        <span class="text-3xl ml-1" v-if="!isPlaying">▶</span>
+        <span class="text-3xl" v-else>⏸</span>
+      </button>
+
+      <div class="w-full h-1.5 bg-gray-100 rounded-full mt-2 overflow-hidden relative">
+         <div class="absolute left-0 top-0 bottom-0 bg-blue-500 w-1/3"></div> <!-- Placeholder progress -->
+      </div>
+    </div>
     
-    <!-- Timeline -->
-    <div class="timeline-container">
+    <!-- Timeline Chart -->
+    <div class="flex-1 h-full overflow-hidden relative">
       <GanttChart />
+      
+      <!-- Time Markers Overlay (Visual only, ideally GanttChart handles this) -->
+      <div class="absolute top-0 left-0 w-full h-6 border-b border-gray-100 flex text-[10px] text-gray-400 pointer-events-none">
+         <div class="flex-1 border-l border-gray-100 pl-1">0.50s</div>
+         <div class="flex-1 border-l border-gray-100 pl-1">1.00s</div>
+         <div class="flex-1 border-l border-gray-100 pl-1">1.50s</div>
+         <div class="flex-1 border-l border-gray-100 pl-1">2.00s</div>
+         <div class="flex-1 border-l border-gray-100 pl-1">2.50s</div>
+         <div class="flex-1 border-l border-gray-100 pl-1">3.00s</div>
+      </div>
     </div>
   </div>
 </template>
 
+
+
 <style scoped>
-.player-bar {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 1.5rem;
-  right: 1.5rem;
-  height: 180px;
-  
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 1rem;
-  
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  
-  z-index: 50;
-}
-
-.fab-play {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #a78bfa, #8b5cf6);
-  border: none;
-  color: white;
-  font-size: 24px;
-  cursor: pointer;
-  box-shadow: 0 8px 16px rgba(167, 139, 250, 0.4);
-  transition: all 0.3s;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.fab-play:hover {
-  transform: scale(1.1);
-  box-shadow: 0 12px 24px rgba(167, 139, 250, 0.6);
-}
-
-.fab-play.playing {
-  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-}
-
-.timeline-container {
-  flex: 1;
-  height: 100%;
-  overflow: hidden;
-}
+/* Scoped styles removed in favor of Tailwind classes */
 </style>

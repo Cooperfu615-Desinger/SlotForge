@@ -1,118 +1,50 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import WorldContainer from '@/components/Renderer/WorldContainer.vue'
 import StageContainer from '@/components/Renderer/StageContainer.vue'
 import TopNavigationBar from '@/components/Layout/TopNavigationBar.vue'
 import EditorPanel from '@/components/Layout/EditorPanel.vue'
 import PlayerBar from '@/components/Layout/PlayerBar.vue'
-
-// Pan state for infinite board
-const boardX = ref(0)
-const boardY = ref(0)
-const isPanning = ref(false)
-const lastPointerPosition = ref({ x: 0, y: 0 })
-
-// Handle right-click pan start
-function handleMouseDown(e: MouseEvent) {
-  if (e.button === 2) { // Right click
-    e.preventDefault()
-    isPanning.value = true
-    lastPointerPosition.value = { x: e.clientX, y: e.clientY }
-  }
-}
-
-// Handle pan move
-function handleMouseMove(e: MouseEvent) {
-  if (!isPanning.value) return
-  
-  const dx = e.clientX - lastPointerPosition.value.x
-  const dy = e.clientY - lastPointerPosition.value.y
-  
-  boardX.value += dx
-  boardY.value += dy
-  
-  lastPointerPosition.value = { x: e.clientX, y: e.clientY }
-}
-
-// Handle pan end
-function handleMouseUp() {
-  isPanning.value = false
-}
-
-// Prevent context menu on right click
-function handleContextMenu(e: MouseEvent) {
-  e.preventDefault()
-}
 </script>
 
 <template>
-  <div 
-    class="infinite-board"
-    @mousedown="handleMouseDown"
-    @mousemove="handleMouseMove"
-    @mouseup="handleMouseUp"
-    @contextmenu="handleContextMenu"
-    :class="{ panning: isPanning }"
-  >
-    <!-- Dot Grid Background -->
-    <div class="dot-grid-background"></div>
+  <!-- Global Container: Logic Board Style (Zinc-100) -->
+  <div class="h-screen w-screen bg-[#F3F4F6] overflow-hidden font-sans relative">
     
-    <!-- Phone Shell Container -->
-    <div 
-      class="phone-shell-wrapper"
-      :style="{ transform: `translate(${boardX}px, ${boardY}px)` }"
-    >
-      <StageContainer />
+    <!-- 0. Infinite Canvas World -->
+    <WorldContainer>
+       <!-- The Panned/Zoomed Content: Phone Shell -->
+       <StageContainer />
+    </WorldContainer>
+
+    <!-- 1. Floating Top Bar -->
+    <!-- Centered Pill -->
+    <div class="fixed top-4 left-0 right-0 z-40 flex justify-center pointer-events-none">
+       <div class="pointer-events-auto shadow-sm rounded-full overflow-hidden">
+         <TopNavigationBar />
+       </div>
     </div>
-    
-    <!-- Floating Panels (Fixed to viewport) -->
-    <TopNavigationBar />
-    <EditorPanel />
-    <PlayerBar />
+
+    <!-- 2. Floating Right Inspector -->
+    <div class="fixed top-24 right-6 bottom-24 w-[400px] z-40 pointer-events-none flex flex-col items-end">
+       <div class="pointer-events-auto bg-white rounded-xl shadow-xl border border-gray-100 h-full w-full overflow-hidden flex flex-col">
+          <EditorPanel />
+       </div>
+    </div>
+
+    <!-- 3. Floating Bottom Player Bar -->
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[800px] h-20 pointer-events-none">
+       <div class="pointer-events-auto w-full h-full"> 
+         <PlayerBar />
+       </div>
+    </div>
+
   </div>
 </template>
 
 <style>
-/* Global Reset */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
+/* Global styles can remain if needed, but Tailwind handles most */
 body {
   margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   overflow: hidden;
-}
-
-.infinite-board {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-  cursor: grab;
-}
-
-.infinite-board.panning {
-  cursor: grabbing;
-}
-
-/* Dot Grid Background */
-.dot-grid-background {
-  position: fixed;
-  inset: 0;
-  background-color: #18181b;
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-  background-size: 20px 20px;
-  z-index: 0;
-}
-
-/* Phone Shell Wrapper */
-.phone-shell-wrapper {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1;
-  transition: transform 0.1s ease-out;
 }
 </style>

@@ -49,9 +49,8 @@ function scroll(direction: 'left' | 'right') {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 20px;
-  background: #f4f4f5; /* Light gray from mockup */
-  border-bottom: 1px solid #e4e4e7;
+  padding: 0;
+  width: 100%;
 }
 
 .viewport {
@@ -60,7 +59,8 @@ function scroll(direction: 'left' | 'right') {
   overflow-x: auto;
   scroll-behavior: smooth;
   padding: 4px;
-  scrollbar-width: none; /* Hide scrollbar */
+  width: 100%;
+  scrollbar-width: none;
 }
 .viewport::-webkit-scrollbar {
   display: none;
@@ -70,8 +70,8 @@ function scroll(direction: 'left' | 'right') {
   flex: 0 0 140px;
   height: 80px;
   background: white;
-  border: 1px solid #d4d4d8;
-  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -82,14 +82,15 @@ function scroll(direction: 'left' | 'right') {
 }
 
 .template-card:hover {
-  border-color: #a1a1aa;
+  border-color: #d1d5db;
   transform: translateY(-2px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .template-card.active {
-  border: 2px solid #3b82f6; /* Blue active border */
-  background: #eff6ff;
+  border: 2px solid #000; /* Black active border per design style (or dark grey) */
+  background: #fff;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .line-type {
@@ -97,31 +98,38 @@ function scroll(direction: 'left' | 'right') {
   color: #71717a;
   text-transform: uppercase;
   margin-bottom: 2px;
+  font-weight: 600;
 }
 
 .main-title {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 800;
   color: #18181b;
 }
 
 .sub-title {
   font-size: 11px;
-  color: #52525b;
+  color: #71717a;
 }
 
 .nav-btn {
-  background: none;
-  border: none;
-  font-size: 18px;
-  color: #a1a1aa;
+  background: white;
+  border: 1px solid #e5e7eb;
+  font-size: 12px;
+  color: #71717a;
   cursor: pointer;
-  padding: 8px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .nav-btn:hover {
-  background: #e4e4e7;
-  color: #52525b;
+  background: #f4f4f5;
+  color: #18181b;
 }
 </style>

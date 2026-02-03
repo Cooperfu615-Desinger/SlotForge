@@ -144,7 +144,7 @@ const spinBlocks = computed(() => {
     flex-direction: column;
     height: 100%;
     background-color: transparent;
-    color: #fafafa;
+    color: #1f2937; /* Gray-800 */
     font-family: 'JetBrains Mono', 'Fira Code', monospace;
     user-select: none;
 }
@@ -154,10 +154,10 @@ const spinBlocks = computed(() => {
     flex: 1;
     position: relative;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.05);
+    background: #f3f4f6; /* Gray-100 */
     cursor: text;
     border-radius: 0.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid #e5e7eb; /* Gray-200 */
 }
 
 /* Grid Markers */
@@ -166,7 +166,7 @@ const spinBlocks = computed(() => {
     top: 0;
     bottom: 0;
     width: 1px;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: #e5e7eb; /* Gray-200 */
 }
 
 .marker span {
@@ -174,7 +174,7 @@ const spinBlocks = computed(() => {
     top: 4px;
     left: 4px;
     font-size: 10px;
-    color: rgba(255, 255, 255, 0.4);
+    color: #9ca3af; /* Gray-400 */
 }
 
 /* Blocks */
@@ -192,7 +192,7 @@ const spinBlocks = computed(() => {
     top: 10px;
     background-color: #3b82f6;
     border-radius: 4px;
-    opacity: 0.8;
+    opacity: 0.9;
     color: white;
     font-size: 10px;
     display: flex;
@@ -203,14 +203,14 @@ const spinBlocks = computed(() => {
     box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
-/* Playhead - Neon Purple */
+/* Playhead - Blue/Red to match theme */
 .playhead {
     position: absolute;
     top: 0;
     bottom: 0;
     width: 0;
-    border-left: 3px solid #a78bfa;
-    box-shadow: 0 0 10px #a78bfa, 0 0 20px rgba(167, 139, 250, 0.5);
+    border-left: 2px solid #ef4444; /* Red-500 */
+    box-shadow: 0 0 5px rgba(239, 68, 68, 0.5);
     z-index: 10;
     pointer-events: none;
 }
@@ -218,21 +218,15 @@ const spinBlocks = computed(() => {
 .playhead .head {
     position: absolute;
     top: 0;
-    left: -6px;
+    left: -5px;
     width: 0; 
     height: 0; 
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 10px solid #a78bfa;
-    filter: drop-shadow(0 0 6px #a78bfa);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 8px solid #ef4444;
 }
 
 .playhead .line {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: -1.5px;
-    width: 3px;
-    background: #a78bfa;
+    display: none; /* Border-left on container handles line */
 }
 </style>
