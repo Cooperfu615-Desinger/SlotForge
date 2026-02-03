@@ -12,7 +12,7 @@ function togglePlay() {
 </script>
 
 <template>
-  <div class="w-full h-full bg-white border border-gray-200 rounded-2xl shadow-lg flex items-center p-4 gap-4">
+  <div class="w-full h-full bg-white/90 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-lg flex items-center p-4 gap-4">
     <!-- Play Control -->
     <div class="flex-none flex flex-col items-center gap-2 border-r pr-4 border-gray-100">
       <div class="flex gap-2 mb-1">
