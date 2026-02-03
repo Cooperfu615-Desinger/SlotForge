@@ -12,7 +12,7 @@ export interface LayoutElement {
     rect_landscape: Rect;
     rect_portrait: Rect;
     asset_src?: string;
-    listening?: boolean; // New prop for click-through
+    listening?: boolean;
     frame_sequence?: string[];
     frame_rate?: number;
 }
@@ -30,29 +30,20 @@ export interface SlotManifest {
 // --------------------------------------------------------
 // Grid Generation Helper
 // --------------------------------------------------------
-// Reel Area: 900x540 at (190, 90)
-// 5 Cols, 3 Rows.
 const REEL_AREA = { x: 190, y: 90, w: 900, h: 540 }
 const COLS = 5
 const ROWS = 3
 const GAP = 10
-// Derived sizes:
-// Total Gap Width = (5-1)*10 = 40. Avail Width = 900 - 40 = 860. Cell W = 172.
-// Total Gap Height = (3-1)*10 = 20. Avail Height = 540 - 20 = 520. Cell H = 173.33 -> Round to 173
 const CELL_W = 172
 const CELL_H = 173
 
 const generateSymbolGrid = (): LayoutElement[] => {
     const symbols: LayoutElement[] = []
-
     for (let c = 0; c < COLS; c++) {
         for (let r = 0; r < ROWS; r++) {
             const x = REEL_AREA.x + c * (CELL_W + GAP)
             const y = REEL_AREA.y + r * (CELL_H + GAP)
-
-            // Random symbol asset for wireframe variety
-            const randomId = Math.floor(Math.random() * 8) + 1 // 1-8 (l1-l4, h1-h4)
-            // Map to sym_l1... or sym_h1... roughly
+            const randomId = Math.floor(Math.random() * 8) + 1
             const typePrefix = randomId > 4 ? 'h' : 'l'
             const typeNum = randomId > 4 ? randomId - 4 : randomId
             const asset = `assets/symbols/sym_${typePrefix}${typeNum}.png`
@@ -62,9 +53,9 @@ const generateSymbolGrid = (): LayoutElement[] => {
                 type: 'symbol',
                 name: `Symbol C${c + 1}R${r + 1}`,
                 z_index: 10,
-                anchor: 'top-left', // Symbols usually top-left for grid
+                anchor: 'top-left',
                 rect_landscape: { x, y, w: CELL_W, h: CELL_H },
-                rect_portrait: { x: 0, y: 0, w: 0, h: 0 }, // TODO
+                rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: asset,
                 listening: true
             })
@@ -83,7 +74,7 @@ export const useManifestStore = defineStore('manifest', () => {
 
     const manifest = ref<SlotManifest>({
         "meta": {
-            "project_name": "SlotForge_V2_Assembly",
+            "project_name": "SlotForge_V2_Layout_Update",
             "base_resolution": { "w": 1280, "h": 720 },
             "orientation": "landscape"
         },
@@ -119,23 +110,22 @@ export const useManifestStore = defineStore('manifest', () => {
             },
 
             // ----------------------------------------------------
-            // Layer 10: Symbols (Generated)
+            // Layer 10: Symbols
             // ----------------------------------------------------
             ...generateSymbolGrid(),
 
             // ----------------------------------------------------
-            // Layer 20: UI Layer (Top & Bottom Bars)
+            // Layer 20: UI Layer (Top)
             // ----------------------------------------------------
-            // Top
             {
-                id: "logo_game",
-                type: "ui",
-                name: "Game Logo",
+                id: "btn_buy_feature",
+                type: "button",
+                name: "Buy Feature",
                 z_index: 20,
-                anchor: "top-left",
-                rect_landscape: { x: 20, y: 10, w: 200, h: 80 }, // Est size
+                anchor: "center",
+                rect_landscape: { x: 120, y: 80, w: 140, h: 80 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
-                asset_src: "assets/ui/logo_game.png",
+                asset_src: "assets/ui/btn_buy_feature.png",
                 listening: true
             },
             {
@@ -143,34 +133,50 @@ export const useManifestStore = defineStore('manifest', () => {
                 type: "ui",
                 name: "Jackpot Panel",
                 z_index: 20,
-                // Centered roughly: 1280/2 = 640. Width est 600?
+                // Centered Top: 1280/2 = 640
                 anchor: "top-left",
-                rect_landscape: { x: 340, y: 0, w: 600, h: 80 },
+                rect_landscape: { x: 340, y: 15, w: 600, h: 70 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/panel_jackpot.png",
                 listening: true
             },
-            // Bottom
+            {
+                id: "logo_game",
+                type: "ui",
+                name: "Game Logo",
+                z_index: 20,
+                anchor: "top-left",
+                rect_landscape: { x: 1050, y: 20, w: 180, h: 80 },
+                rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
+                asset_src: "assets/ui/logo_game.png",
+                listening: true
+            },
+
+            // ----------------------------------------------------
+            // Layer 20: UI Layer (Bottom)
+            // ----------------------------------------------------
             {
                 id: "panel_marquee",
                 type: "ui",
                 name: "Marquee",
                 z_index: 20,
                 anchor: "top-left",
-                rect_landscape: { x: 290, y: 580, w: 700, h: 40 }, // Est
+                rect_landscape: { x: 290, y: 590, w: 700, h: 40 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/panel_marquee.png",
                 listening: true
             },
+
+            // Bottom Row: Menu | Balance | Win | Bet | Spin
             {
-                id: "field_win",
-                type: "ui",
-                name: "Win Field",
-                z_index: 20,
-                anchor: "top-left",
-                rect_landscape: { x: 540, y: 650, w: 200, h: 50 }, // Centered X=640-100
+                id: "btn_menu",
+                type: "button",
+                name: "Menu Button",
+                z_index: 25,
+                anchor: "center",
+                rect_landscape: { x: 60, y: 670, w: 60, h: 60 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
-                asset_src: "assets/ui/field_win.png",
+                asset_src: "assets/ui/btn_menu.png",
                 listening: true
             },
             {
@@ -179,9 +185,20 @@ export const useManifestStore = defineStore('manifest', () => {
                 name: "Balance Field",
                 z_index: 20,
                 anchor: "top-left",
-                rect_landscape: { x: 20, y: 650, w: 200, h: 50 },
+                rect_landscape: { x: 120, y: 655, w: 180, h: 40 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/field_balance.png",
+                listening: true
+            },
+            {
+                id: "field_win",
+                type: "ui",
+                name: "Win Field",
+                z_index: 20,
+                anchor: "top-left",
+                rect_landscape: { x: 320, y: 655, w: 180, h: 40 }, // Next to Balance
+                rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
+                asset_src: "assets/ui/field_win.png",
                 listening: true
             },
             {
@@ -190,22 +207,22 @@ export const useManifestStore = defineStore('manifest', () => {
                 name: "Bet Field",
                 z_index: 20,
                 anchor: "top-left",
-                rect_landscape: { x: 900, y: 650, w: 200, h: 50 },
+                rect_landscape: { x: 520, y: 655, w: 180, h: 40 }, // Next to Win
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/field_bet.png",
                 listening: true
             },
 
             // ----------------------------------------------------
-            // Layer 25: Interactive Buttons
+            // Layer 25: Spin Cluster (Bottom Right)
             // ----------------------------------------------------
             {
                 id: "btn_spin",
                 type: "button",
                 name: "Spin Button",
                 z_index: 25,
-                anchor: "center", // Center Anchor for rotation/scale effects
-                rect_landscape: { x: 1180, y: 360, w: 130, h: 130 }, // Right Vertical Center
+                anchor: "center",
+                rect_landscape: { x: 1180, y: 640, w: 120, h: 120 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/btn_spin.png",
                 listening: true
@@ -216,7 +233,8 @@ export const useManifestStore = defineStore('manifest', () => {
                 name: "Auto Button",
                 z_index: 25,
                 anchor: "center",
-                rect_landscape: { x: 1180, y: 260, w: 80, h: 80 }, // Above Spin
+                // Left of Spin
+                rect_landscape: { x: 1080, y: 670, w: 60, h: 60 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/btn_auto.png",
                 listening: true
@@ -227,48 +245,14 @@ export const useManifestStore = defineStore('manifest', () => {
                 name: "Turbo Button",
                 z_index: 25,
                 anchor: "center",
-                rect_landscape: { x: 1180, y: 460, w: 80, h: 80 }, // Below Spin
+                // Left of Auto? Or above? User image shows them clustered.
+                rect_landscape: { x: 1010, y: 670, w: 60, h: 60 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/btn_turbo.png",
                 listening: true
             },
-            {
-                id: "btn_menu",
-                type: "button",
-                name: "Menu Button",
-                z_index: 25,
-                anchor: "center",
-                rect_landscape: { x: 50, y: 680, w: 60, h: 60 }, // Bottom Left corner
-                rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
-                asset_src: "assets/ui/btn_menu.png",
-                listening: true
-            },
 
-            // ----------------------------------------------------
-            // Layer 50: Overlay (The Phone Frame)
-            // ----------------------------------------------------
-            {
-                id: "overlay_frame",
-                type: "overlay",
-                name: "Phone Frame",
-                z_index: 50,
-                anchor: "top-left",
-                rect_landscape: { x: 0, y: 0, w: 1280, h: 720 },
-                rect_portrait: { x: 0, y: 0, w: 720, h: 1280 },
-                asset_src: "assets/ui/overlay_frame.png",
-                listening: false // Click-through enabled
-            },
-            {
-                id: "overlay_notch",
-                type: "overlay",
-                name: "Dynamic Island",
-                z_index: 51,
-                anchor: "top-left",
-                rect_landscape: { x: 0, y: 0, w: 1280, h: 720 }, // Assuming full screen overlay with transparency
-                rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
-                asset_src: "assets/ui/overlay_notch.png",
-                listening: false
-            }
+
         ]
     })
 

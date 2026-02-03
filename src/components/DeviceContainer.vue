@@ -4,9 +4,14 @@ import { ref, onMounted, onUnmounted } from 'vue'
 const containerRef = ref<HTMLElement | null>(null)
 const scale = ref(1)
 
-// Fixed Logical Resolution
-const LOGICAL_WIDTH = 1280
-const LOGICAL_HEIGHT = 720
+// New Logical Resolution:
+// We base the scale on the "Frame Height" to ensure it fits.
+// User requested Frame Height ~ 750px to house the 720px content.
+// A typical phone aspect ratio is ~19.5:9 or 20:9.
+// If Height is 750, Width might be around 1600.
+// Let's define a "Design Space" large enough to hold the phone.
+const DESIGN_WIDTH = 1600
+const DESIGN_HEIGHT = 750
 
 const updateScale = () => {
   if (!containerRef.value) return
@@ -14,18 +19,16 @@ const updateScale = () => {
   const wrapper = containerRef.value
   const { clientWidth, clientHeight } = wrapper
   
-  // Calculate scale to fit, adding some padding (e.g. 0.9 factor for breathing room)
-  const scaleX = clientWidth / LOGICAL_WIDTH
-  const scaleY = clientHeight / LOGICAL_HEIGHT
+  const scaleX = clientWidth / DESIGN_WIDTH
+  const scaleY = clientHeight / DESIGN_HEIGHT
   const minScale = Math.min(scaleX, scaleY)
   
-  // Use 90% of the available space to avoid edges touching
+  // 95% fit
   scale.value = minScale * 0.95
 }
 
 onMounted(() => {
   window.addEventListener('resize', updateScale)
-  // Initial calculation needs a small tick to ensure DOM is ready
   setTimeout(updateScale, 0)
 })
 
@@ -35,33 +38,47 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <!-- Wrapper that takes full available space of Center Stage -->
-  <div ref="containerRef" class="w-full h-full flex items-center justify-center">
+  <!-- Main Resize Wrapper -->
+  <div ref="containerRef" class="w-full h-full flex items-center justify-center bg-gray-900">
     
-    <!-- The physical device screen representation -->
+    <!-- Scaled Container (The "World") -->
     <div 
-      class="device-screen bg-white shadow-2xl relative"
+      class="design-layer relative"
       :style="{
-        width: `${LOGICAL_WIDTH}px`,
-        height: `${LOGICAL_HEIGHT}px`,
+        width: `${DESIGN_WIDTH}px`,
+        height: `${DESIGN_HEIGHT}px`,
         transform: `scale(${scale})`,
         transformOrigin: 'center center'
       }"
     >
-      <!-- Slot Content goes here -->
-      <slot />
       
-      <!-- Safe Area Guide (Visual Debug) -->
-      <div class="absolute inset-0 border-2 border-dashed border-gray-300 pointer-events-none opacity-50"></div>
+      <!-- Layer 1: The Game Canvas (1280x720) -->
+      <!-- Absolute Center -->
+      <div class="game-layer absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1280px] h-[720px] bg-black overflow-hidden shadow-2xl">
+         <slot />
+      </div>
+
+      <!-- Layer 2: The Phone Frame Overlay -->
+      <!-- Absolute Center, Click-Through -->
+      <img 
+        src="/assets/ui/overlay_frame.png" 
+        class="frame-layer absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none z-50"
+        style="height: 760px; max-width: none;"
+        alt="Device Frame"
+      />
+      
+      <!-- Layer 3: Dynamic Island / Notch (Optional) -->
+      <!-- Usually part of frame, but if separate -->
+       <!-- <img src="/assets/ui/overlay_notch.png" ... /> -->
+
     </div>
   
   </div>
 </template>
 
 <style scoped>
-.device-screen {
-  /* Ensure clean edges during scaling */
-  backface-visibility: hidden;
-  will-change: transform;
+.design-layer {
+  /* Debug Outline */
+  /* border: 1px dashed rgba(255,255,255,0.2); */
 }
 </style>
