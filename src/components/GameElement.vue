@@ -45,7 +45,8 @@ const config = computed(() => ({
   y: rect.value.y,
   width: rect.value.w,
   height: rect.value.h,
-  listening: props.element.listening ?? true, // Default to true if undefined
+  listening: props.element.listening ?? true,
+  draggable: store.isEditMode, // Enable dragging in edit mode
   
   // Center Anchor Logic for Buttons
   offsetX: props.element.anchor === 'center' ? rect.value.w / 2 : 0,
@@ -59,10 +60,29 @@ const handleClick = () => {
   }
 }
 
+const handleDragEnd = (e: any) => {
+  const node = e.target
+  let x = node.x()
+  let y = node.y()
+  
+  // Adjust for center anchor
+  if (props.element.anchor === 'center') {
+    x += rect.value.w / 2
+    y += rect.value.h / 2
+  }
+  
+  store.updateElementPosition(props.element.id, x, y)
+}
+
 </script>
 
 <template>
-  <v-group :config="config" @click="handleClick" @tap="handleClick">
+  <v-group 
+    :config="config" 
+    @click="handleClick" 
+    @tap="handleClick"
+    @dragend="handleDragEnd"
+  >
     
     <!-- Success: Render Image -->
     <v-image 
@@ -99,9 +119,22 @@ const handleClick = () => {
       />
     </v-group>
 
+    <!-- Edit Mode Indicator (Cyan Dashed Border) -->
+    <v-rect 
+      v-if="store.isEditMode && isSelected"
+      :config="{
+        width: rect.w,
+        height: rect.h,
+        stroke: '#06b6d4', // Cyan-500
+        strokeWidth: 2,
+        dash: [10, 5], // Dashed line
+        listening: false
+      }"
+    />
+
     <!-- Selection Highlight (Cyan Border) -->
     <v-rect 
-      v-if="isSelected"
+      v-if="isSelected && !store.isEditMode"
       :config="{
         width: rect.w,
         height: rect.h,
