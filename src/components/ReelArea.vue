@@ -40,28 +40,5 @@ const reels = Array.from({ length: 5 }, (_, i) => ({
   </v-group>
   
   <!-- Spin Button (保留原有的按鈕) -->
-  <v-group
-    :config="{
-      x: 850,
-      y: 400,
-      listening: true
-    }"
-    @click="gameStore.startSpin()"
-    @tap="gameStore.startSpin()"
-  >
-    <v-circle :config="{
-      radius: 40,
-      fill: '#4CAF50',
-      stroke: '#388E3C',
-      strokeWidth: 3
-    }" />
-    <v-text :config="{
-      x: -30,
-      y: -10,
-      text: 'SPIN',
-      fontSize: 18,
-      fill: '#FFFFFF',
-      fontStyle: 'bold'
-    }" />
-  </v-group>
+
 </template>
