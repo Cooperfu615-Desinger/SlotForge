@@ -63,7 +63,7 @@ onUnmounted(() => {
       <!-- Absolute Center -->
       <!-- Background white/black allows 'Pillarbox' effect if frame is wider -->
       <div 
-        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1280px] h-[720px] bg-black shadow-2xl z-10"
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1280px] h-[720px] bg-white shadow-2xl z-10"
       >
          <slot />
       </div>

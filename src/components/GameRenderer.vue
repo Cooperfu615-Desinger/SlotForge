@@ -22,7 +22,7 @@ const sortedElements = computed(() => {
   <v-stage :config="STAGE_CONFIG">
     <v-layer>
       <!-- Background Color (Fallback for Stage) -->
-      <v-rect :config="{ width: 1280, height: 720, fill: '#eeeeee' }" />
+      <v-rect :config="{ width: 1280, height: 720, fill: '#f9f9f9' }" />
       
       <!-- Render Loop -->
       <GameElement 

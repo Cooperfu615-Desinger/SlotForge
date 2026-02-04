@@ -41,7 +41,7 @@ const CELL_H = 120     // Reduced from 173px to 120px (square)
 // Width: 5 × (120 + 5) - 5 = 620px
 // Height: 3 × (120 + 5) - 5 = 370px
 // Centered: x = (1280 - 620) / 2 = 330, y = 175 (adjusted for top/bottom bars)
-const REEL_AREA = { x: 330, y: 175, w: 620, h: 370 }
+const REEL_AREA = { x: 330, y: 150, w: 620, h: 370 }
 
 const generateSymbolGrid = (): LayoutElement[] => {
     const symbols: LayoutElement[] = []
@@ -228,7 +228,7 @@ export const useManifestStore = defineStore('manifest', () => {
                 name: "Spin Button",
                 z_index: 25,
                 anchor: "top-left",
-                rect_landscape: { x: 1088, y: 448, w: 160, h: 160 },
+                rect_landscape: { x: 1058, y: 448, w: 160, h: 160 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/btn_spin.png",
                 listening: true
@@ -240,7 +240,7 @@ export const useManifestStore = defineStore('manifest', () => {
                 z_index: 25,
                 anchor: "top-left",
                 // Below of Spin
-                rect_landscape: { x: 1180, y: 615, w: 75, h: 75 },
+                rect_landscape: { x: 1150, y: 615, w: 75, h: 75 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/btn_auto.png",
                 listening: true
@@ -252,7 +252,7 @@ export const useManifestStore = defineStore('manifest', () => {
                 z_index: 25,
                 anchor: "top-left",
                 // Above of Spin
-                rect_landscape: { x: 1080, y: 615, w: 75, h: 75 },
+                rect_landscape: { x: 1050, y: 615, w: 75, h: 75 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/btn_turbo.png",
                 listening: true
