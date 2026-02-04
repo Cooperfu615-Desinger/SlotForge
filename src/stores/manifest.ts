@@ -77,8 +77,6 @@ const generateSymbolGrid = (): LayoutElement[] => {
 export const useManifestStore = defineStore('manifest', () => {
 
     const selectedElementId = ref<string | null>(null)
-    const isEditMode = ref(false)
-    const snapToGrid = ref(true)
 
     const manifest = ref<SlotManifest>({
         "meta": {
@@ -169,7 +167,7 @@ export const useManifestStore = defineStore('manifest', () => {
                 name: "Marquee",
                 z_index: 20,
                 anchor: "top-left",
-                rect_landscape: { x: 325, y: 568, w: 629, h: 67 },
+                rect_landscape: { x: 290, y: 590, w: 700, h: 40 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/panel_marquee.png",
                 listening: true
@@ -182,7 +180,7 @@ export const useManifestStore = defineStore('manifest', () => {
                 name: "Menu Button",
                 z_index: 25,
                 anchor: "center",
-                rect_landscape: { x: 20, y: 635, w: 75, h: 75 },
+                rect_landscape: { x: 60, y: 670, w: 60, h: 60 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/btn_menu.png",
                 listening: true
@@ -193,7 +191,7 @@ export const useManifestStore = defineStore('manifest', () => {
                 name: "Balance Field",
                 z_index: 20,
                 anchor: "top-left",
-                rect_landscape: { x: 110, y: 635, w: 265, h: 75 },
+                rect_landscape: { x: 120, y: 655, w: 180, h: 40 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/field_balance.png",
                 listening: true
@@ -204,7 +202,7 @@ export const useManifestStore = defineStore('manifest', () => {
                 name: "Win Field",
                 z_index: 20,
                 anchor: "top-left",
-                rect_landscape: { x: 390, y: 635, w: 265, h: 75 }, // Next to Balance
+                rect_landscape: { x: 320, y: 655, w: 180, h: 40 }, // Next to Balance
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/field_win.png",
                 listening: true
@@ -215,7 +213,7 @@ export const useManifestStore = defineStore('manifest', () => {
                 name: "Bet Field",
                 z_index: 20,
                 anchor: "top-left",
-                rect_landscape: { x: 670, y: 635, w: 265, h: 75 }, // Next to Win
+                rect_landscape: { x: 520, y: 655, w: 180, h: 40 }, // Next to Win
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/field_bet.png",
                 listening: true
@@ -230,7 +228,7 @@ export const useManifestStore = defineStore('manifest', () => {
                 name: "Spin Button",
                 z_index: 25,
                 anchor: "center",
-                rect_landscape: { x: 1112, y: 552, w: 158, h: 158 },
+                rect_landscape: { x: 1180, y: 640, w: 120, h: 120 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/btn_spin.png",
                 listening: true
@@ -241,8 +239,8 @@ export const useManifestStore = defineStore('manifest', () => {
                 name: "Auto Button",
                 z_index: 25,
                 anchor: "center",
-                // Left of Auto
-                rect_landscape: { x: 1032, y: 635, w: 75, h: 75 },
+                // Left of Spin
+                rect_landscape: { x: 1080, y: 670, w: 60, h: 60 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/btn_auto.png",
                 listening: true
@@ -254,62 +252,13 @@ export const useManifestStore = defineStore('manifest', () => {
                 z_index: 25,
                 anchor: "center",
                 // Left of Auto? Or above? User image shows them clustered.
-                rect_landscape: { x: 952, y: 635, w: 75, h: 75 },
+                rect_landscape: { x: 1010, y: 670, w: 60, h: 60 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/btn_turbo.png",
                 listening: true
             },
 
 
-
-            // ----------------------------------------------------
-            // DEBUG MARKERS (To be removed)
-            // ----------------------------------------------------
-            {
-                id: "debug_tl",
-                type: "ui",
-                name: "Debug TL",
-                z_index: 999,
-                anchor: "top-left",
-                rect_landscape: { x: 0, y: 0, w: 50, h: 50 },
-                rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
-                asset_src: "", // No asset, will likely render as placeholder or need specific handling? 
-                // Actually, let's use a known asset like 'btn_menu.png' to be safe and visible
-                listening: false
-            },
-            {
-                id: "debug_tr",
-                type: "ui",
-                name: "Debug TR",
-                z_index: 999,
-                anchor: "top-left",
-                rect_landscape: { x: 1230, y: 0, w: 50, h: 50 },
-                rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
-                asset_src: "",
-                listening: false
-            },
-            {
-                id: "debug_bl",
-                type: "ui",
-                name: "Debug BL",
-                z_index: 999,
-                anchor: "top-left",
-                rect_landscape: { x: 0, y: 670, w: 50, h: 50 },
-                rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
-                asset_src: "",
-                listening: false
-            },
-            {
-                id: "debug_br",
-                type: "ui",
-                name: "Debug BR",
-                z_index: 999,
-                anchor: "top-left",
-                rect_landscape: { x: 1230, y: 670, w: 50, h: 50 },
-                rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
-                asset_src: "",
-                listening: false
-            },
         ]
     })
 
@@ -318,38 +267,9 @@ export const useManifestStore = defineStore('manifest', () => {
         selectedElementId.value = id
     }
 
-    const toggleEditMode = () => {
-        isEditMode.value = !isEditMode.value
-        console.log('Edit Mode:', isEditMode.value)
-    }
-
-    const toggleSnapToGrid = () => {
-        snapToGrid.value = !snapToGrid.value
-        console.log('Snap to Grid:', snapToGrid.value)
-    }
-
-    const updateElementPosition = (id: string, x: number, y: number) => {
-        const element = manifest.value.layout_elements.find(el => el.id === id)
-        if (element) {
-            // Apply snap to grid if enabled
-            if (snapToGrid.value) {
-                x = Math.round(x / 10) * 10
-                y = Math.round(y / 10) * 10
-            }
-            element.rect_landscape.x = x
-            element.rect_landscape.y = y
-            console.log(`Updated ${id} position to (${x}, ${y})`)
-        }
-    }
-
     return {
         manifest,
         selectedElementId,
-        isEditMode,
-        snapToGrid,
-        setSelected,
-        toggleEditMode,
-        toggleSnapToGrid,
-        updateElementPosition
+        setSelected
     }
 })
