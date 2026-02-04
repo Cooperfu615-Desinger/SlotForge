@@ -15,7 +15,7 @@ const lightTheme: GlobalThemeOverrides = {
 <template>
   <n-config-provider :theme-overrides="lightTheme">
     <n-message-provider>
-      <div class="w-screen h-screen flex flex-col overflow-hidden bg-gray-50">
+      <div class="h-screen w-screen grid grid-cols-[1fr_320px] grid-rows-[64px_1fr] bg-gray-50 overflow-hidden">
         
         <!-- Top Bar: Global Nav -->
         <header class="col-span-2 row-span-1 bg-white border-b border-gray-200 shadow-sm flex items-center px-4 z-10">
