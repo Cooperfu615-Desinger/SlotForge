@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { computed, ref, watchEffect } from 'vue'
+import { computed, ref, watchEffect, watch } from 'vue'
 import type { LayoutElement } from '../stores/manifest'
 import { useManifestStore } from '../stores/manifest'
+import { useGameStore } from '../stores/gameStore'
+import { useReelController } from '../composables/useReelController'
 
 const props = defineProps<{
   element: LayoutElement
 }>()
 
 const store = useManifestStore()
+const gameStore = useGameStore()
 const image = ref<HTMLImageElement | null>(null)
 const isLoaded = ref(false)
 const isError = ref(false)
@@ -39,13 +42,51 @@ watchEffect(() => {
   }
 })
 
-// Main Config
+// ========================================
+// Reel Animation Logic (for Symbol elements only)
+// ========================================
+
+// Determine which reel (column) this symbol belongs to
+const reelId = computed(() => {
+  if (props.element.type !== 'symbol') return null
+  const match = props.element.id.match(/sym_c(\d+)_r\d+/)
+  return match ? parseInt(match[1]) - 1 : null
+})
+
+// Initialize reel controller if this is a symbol
+const reelController = reelId.value !== null 
+  ? useReelController(
+      {
+        reelId: reelId.value,
+        symbolHeight: 125,  // 120px symbol + 5px gap
+        spinDuration: gameStore.rhythmSpec.spinDuration,
+        stopDelay: reelId.value * gameStore.rhythmSpec.intervalBetweenReels
+      },
+      // Callback when all reels have stopped (triggered by last reel)
+      () => {
+        console.log('[GameElement] All reels stopped, resetting game state')
+        gameStore.stopSpin()
+      }
+    )
+  : null
+
+// Watch game state and trigger animation
+if (reelController) {
+  watch(() => gameStore.gameState, (newState) => {
+    if (newState === 'SPINNING') {
+      console.log(`[Symbol ${props.element.id}] Starting reel animation`)
+      reelController.spin()
+    }
+  })
+}
+
+// Main Config with animated Y position
 const config = computed(() => ({
   x: rect.value.x,
-  y: rect.value.y,
+  y: rect.value.y + (reelController?.offsetY.value || 0),  // Apply animation offset
   width: rect.value.w,
   height: rect.value.h,
-  listening: props.element.listening ?? true, // Default to true if undefined
+  listening: props.element.listening ?? true,
   
   // Center Anchor Logic for Buttons
   offsetX: props.element.anchor === 'center' ? rect.value.w / 2 : 0,
@@ -54,6 +95,14 @@ const config = computed(() => ({
 
 const handleClick = () => {
   if (props.element.listening !== false) {
+    // If this is the Spin button, trigger spin
+    if (props.element.id === 'btn_spin') {
+      console.log('[GameElement] Spin button clicked!')
+      gameStore.startSpin()
+      return
+    }
+    
+    // Otherwise, just select the element
     store.setSelected(props.element.id)
     console.log(`Selected: ${props.element.id}`)
   }
@@ -92,7 +141,7 @@ const handleClick = () => {
           height: rect.h,
           align: 'center',
           verticalAlign: 'middle',
-          fontSize: 14, // Smaller font for dense grids
+          fontSize: 14,
           fontStyle: 'bold',
           fill: '#000000'
         }"
@@ -105,9 +154,9 @@ const handleClick = () => {
       :config="{
         width: rect.w,
         height: rect.h,
-        stroke: '#06b6d4', // Cyan-500
+        stroke: '#06b6d4',
         strokeWidth: 4,
-        listening: false // Visual only, don't block clicks
+        listening: false
       }"
     />
 
