@@ -2,10 +2,62 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
 export type GameState = 'IDLE' | 'SPINNING' | 'STOPPING' | 'STOPPED'
+export type SpeedMode = 'fast' | 'normal' | 'slow'
 
-export interface RhythmSpec {
-    spinDuration: number        // Total spin time (ms)
-    intervalBetweenReels: number  // Delay between each reel stop (ms)
+export interface SpeedPreset {
+    name: SpeedMode
+    // Phase Durations (ms)
+    spinDuration: number        // Phase 1: 高速滾動
+    decelerateDuration: number  // Phase 2: 減速
+    alignDuration: number       // Phase 3: 對齊
+    settleDuration: number      // Phase 4: 微彈
+    // Sequential Stop Timing
+    intervalBetweenReels: number
+    // Physics
+    spinSymbolCount: number     // Phase 1 滾動符號數
+    decelerateSymbolCount: number // Phase 2 減速符號數
+    overshootSymbols: number    // Phase 3 過衝符號數 (0 = 無)
+    bounceStrength: number      // Phase 4 回彈力道 (0 = 無)
+}
+
+// 三種速度預設
+export const SPEED_PRESETS: Record<SpeedMode, SpeedPreset> = {
+    fast: {
+        name: 'fast',
+        spinDuration: 1000,
+        decelerateDuration: 500,
+        alignDuration: 200,
+        settleDuration: 100,
+        intervalBetweenReels: 150,
+        spinSymbolCount: 30,
+        decelerateSymbolCount: 8,
+        overshootSymbols: 0,
+        bounceStrength: 0
+    },
+    normal: {
+        name: 'normal',
+        spinDuration: 2000,
+        decelerateDuration: 1000,
+        alignDuration: 300,
+        settleDuration: 200,
+        intervalBetweenReels: 200,
+        spinSymbolCount: 40,
+        decelerateSymbolCount: 10,
+        overshootSymbols: 0.5,
+        bounceStrength: 1.2
+    },
+    slow: {
+        name: 'slow',
+        spinDuration: 3000,
+        decelerateDuration: 1500,
+        alignDuration: 400,
+        settleDuration: 300,
+        intervalBetweenReels: 300,
+        spinSymbolCount: 50,
+        decelerateSymbolCount: 15,
+        overshootSymbols: 1,
+        bounceStrength: 1.5
+    }
 }
 
 export const useGameStore = defineStore('game', () => {
@@ -13,11 +65,9 @@ export const useGameStore = defineStore('game', () => {
     const gameState = ref<GameState>('IDLE')
     const isSpinning = computed(() => gameState.value !== 'IDLE')
 
-    // Spin Configuration (Rhythm Spec)
-    const rhythmSpec = ref<RhythmSpec>({
-        spinDuration: 2000,           // 2 seconds spin
-        intervalBetweenReels: 300     // 300ms delay between each reel
-    })
+    // Speed Mode
+    const currentSpeedMode = ref<SpeedMode>('normal')
+    const currentPreset = computed(() => SPEED_PRESETS[currentSpeedMode.value])
 
     // Actions
     const startSpin = () => {
@@ -25,7 +75,7 @@ export const useGameStore = defineStore('game', () => {
             console.warn('[GameStore] Already spinning, ignoring startSpin()')
             return
         }
-        console.log('[GameStore] Starting spin...')
+        console.log(`[GameStore] Starting spin (speed: ${currentSpeedMode.value})...`)
         gameState.value = 'SPINNING'
     }
 
@@ -34,11 +84,19 @@ export const useGameStore = defineStore('game', () => {
         gameState.value = 'IDLE'
     }
 
+    const setSpeedMode = (mode: SpeedMode) => {
+        console.log(`[GameStore] Speed mode changed to: ${mode}`)
+        currentSpeedMode.value = mode
+    }
+
     return {
         gameState,
         isSpinning,
-        rhythmSpec,
+        currentSpeedMode,
+        currentPreset,
         startSpin,
-        stopSpin
+        stopSpin,
+        setSpeedMode
     }
 })
+

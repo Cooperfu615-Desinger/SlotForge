@@ -1,13 +1,20 @@
 import gsap from 'gsap'
 import { ref } from 'vue'
+import type { SpeedPreset } from '../stores/gameStore'
 
 export interface ReelConfig {
     reelId: number           // 0-4 (for 5 reels)
-    symbolHeight: number     // Height of each symbol (e.g., 120px)
-    spinDuration: number     // Total spin duration (ms)
-    stopDelay: number        // Delay before this reel stops (ms)
+    symbolHeight: number     // Height of each symbol (e.g., 125px)
 }
 
+/**
+ * 4-Phase Reel Animation Controller
+ * 
+ * Phase 1: Spin - 高速線性滾動
+ * Phase 2: Decelerate - 減速
+ * Phase 3: Align - 對齊格線
+ * Phase 4: Settle - 選配微彈
+ */
 export const useReelController = (config: ReelConfig, onAllReelsStopped?: () => void) => {
     // Current Y offset for this reel (累積位移量)
     const offsetY = ref(0)
@@ -16,52 +23,78 @@ export const useReelController = (config: ReelConfig, onAllReelsStopped?: () => 
     let timeline: gsap.core.Timeline | null = null
 
     /**
-     * Start the reel spin animation
-     * 修正後的邏輯：
-     * - offsetY 持續增加 = 符號往下掉落
-     * - 新符號從上方出現（透過 modulus 循環）
+     * Start the 4-phase reel spin animation
      */
-    const spin = () => {
+    const spin = (preset: SpeedPreset) => {
         if (timeline) {
             timeline.kill()
         }
 
+        const stopDelay = config.reelId * preset.intervalBetweenReels
+
         timeline = gsap.timeline()
 
-        // Phase 1: Spin (高速滾動)
-        // 使用相對位移 '+=' 確保持續累加
+        // ═══════════════════════════════════════════════════════════
+        // Phase 1: Spin (高速線性滾動)
+        // ═══════════════════════════════════════════════════════════
         timeline.to(offsetY, {
-            value: `+=${config.symbolHeight * 40}`,  // 滾動 40 個符號的距離
-            duration: config.spinDuration / 1000,
-            ease: 'linear',
-            onUpdate: () => {
-                // 每次更新時輸出當前位移（除錯用）
-                if (Math.floor(offsetY.value) % 100 === 0) {
-                    console.log(`[Reel ${config.reelId}] offsetY: ${Math.floor(offsetY.value)}`)
-                }
-            }
+            value: `+=${config.symbolHeight * preset.spinSymbolCount}`,
+            duration: preset.spinDuration / 1000,
+            ease: 'linear'
         })
 
-        // Phase 2: Stop with Bounce
-        // 計算最終停止位置（對齊到符號高度的倍數）
+        // ═══════════════════════════════════════════════════════════
+        // Phase 2: Decelerate (減速)
+        // ═══════════════════════════════════════════════════════════
+        timeline.to(offsetY, {
+            value: `+=${config.symbolHeight * preset.decelerateSymbolCount}`,
+            duration: preset.decelerateDuration / 1000,
+            ease: 'power2.out'  // 平滑減速
+        })
+
+        // ═══════════════════════════════════════════════════════════
+        // Phase 3: Align (對齊格線) - 依序停止
+        // ═══════════════════════════════════════════════════════════
         timeline.to(offsetY, {
             value: () => {
                 const current = offsetY.value
                 // 找到下一個對齊點
-                const nextAligned = Math.ceil(current / config.symbolHeight) * config.symbolHeight
-                // 多滾 2.5 個符號增加戲劇性
-                return nextAligned + config.symbolHeight * 2.5
+                const aligned = Math.ceil(current / config.symbolHeight) * config.symbolHeight
+                // 加上過衝量
+                return aligned + config.symbolHeight * preset.overshootSymbols
             },
-            duration: 0.8,
-            delay: config.stopDelay / 1000,
-            ease: 'back.out(1.7)',
-            onComplete: () => {
+            duration: preset.alignDuration / 1000,
+            delay: stopDelay / 1000,  // 依序停止的延遲
+            ease: 'power3.out'
+        })
+
+        // ═══════════════════════════════════════════════════════════
+        // Phase 4: Settle (選配微彈)
+        // ═══════════════════════════════════════════════════════════
+        if (preset.bounceStrength > 0 && preset.overshootSymbols > 0) {
+            timeline.to(offsetY, {
+                value: () => {
+                    const current = offsetY.value
+                    return Math.round(current / config.symbolHeight) * config.symbolHeight
+                },
+                duration: preset.settleDuration / 1000,
+                ease: `back.out(${preset.bounceStrength})`,
+                onComplete: () => {
+                    console.log(`[Reel ${config.reelId}] Stopped at offsetY: ${Math.floor(offsetY.value)}`)
+                    if (config.reelId === 4 && onAllReelsStopped) {
+                        onAllReelsStopped()
+                    }
+                }
+            })
+        } else {
+            // 無回彈時，Phase 3 完成後直接回調
+            timeline.call(() => {
                 console.log(`[Reel ${config.reelId}] Stopped at offsetY: ${Math.floor(offsetY.value)}`)
                 if (config.reelId === 4 && onAllReelsStopped) {
                     onAllReelsStopped()
                 }
-            }
-        })
+            })
+        }
     }
 
     /**
@@ -74,9 +107,19 @@ export const useReelController = (config: ReelConfig, onAllReelsStopped?: () => 
         }
     }
 
+    /**
+     * Reset offset to 0
+     */
+    const reset = () => {
+        stop()
+        offsetY.value = 0
+    }
+
     return {
         offsetY,
         spin,
-        stop
+        stop,
+        reset
     }
 }
+

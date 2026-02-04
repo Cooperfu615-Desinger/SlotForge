@@ -59,9 +59,7 @@ const reelController = reelId.value !== null
   ? useReelController(
       {
         reelId: reelId.value,
-        symbolHeight: 125,  // 120px symbol + 5px gap
-        spinDuration: gameStore.rhythmSpec.spinDuration,
-        stopDelay: reelId.value * gameStore.rhythmSpec.intervalBetweenReels
+        symbolHeight: 125  // 120px symbol + 5px gap
       },
       // Callback when all reels have stopped (triggered by last reel)
       () => {
@@ -76,7 +74,7 @@ if (reelController) {
   watch(() => gameStore.gameState, (newState) => {
     if (newState === 'SPINNING') {
       console.log(`[Symbol ${props.element.id}] Starting reel animation`)
-      reelController.spin()
+      reelController.spin(gameStore.currentPreset)
     }
   })
 }

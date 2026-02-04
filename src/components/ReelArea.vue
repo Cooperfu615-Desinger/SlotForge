@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import ReelColumn from './ReelColumn.vue'
-import { useGameStore } from '../stores/gameStore'
-
-const gameStore = useGameStore()
 
 // Reel 區域配置（從 manifest.ts 複製）
 const REEL_AREA = { x: 330, y: 150, w: 620, h: 370 }

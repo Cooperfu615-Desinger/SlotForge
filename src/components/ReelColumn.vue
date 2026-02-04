@@ -25,13 +25,11 @@ onMounted(() => {
   generateStrip()
 })
 
-// 動畫控制器
+// 動畫控制器 (簡化配置，SpeedPreset 由 spin() 傳入)
 const reelController = useReelController(
   {
     reelId: props.reelId,
-    symbolHeight: props.symbolHeight,
-    spinDuration: gameStore.rhythmSpec.spinDuration,
-    stopDelay: props.reelId * gameStore.rhythmSpec.intervalBetweenReels
+    symbolHeight: props.symbolHeight
   },
   () => {
     if (props.reelId === 4) {
@@ -43,8 +41,8 @@ const reelController = useReelController(
 // 監聽遊戲狀態
 watch(() => gameStore.gameState, (newState) => {
   if (newState === 'SPINNING') {
-    console.log(`[ReelColumn ${props.reelId}] Starting spin`)
-    reelController.spin()
+    console.log(`[ReelColumn ${props.reelId}] Starting spin (${gameStore.currentSpeedMode})`)
+    reelController.spin(gameStore.currentPreset)
   }
 })
 
@@ -71,22 +69,57 @@ const visibleSymbols = computed(() => {
   })
 })
 
-// 圖片快取
-const imageCache = ref<Map<string, HTMLImageElement>>(new Map())
+// 圖片快取 (使用 reactive object 確保響應性)
+const imageCache = ref<Record<string, HTMLImageElement>>({})
+const imagesLoaded = ref(false)
 
-const loadImage = (src: string): HTMLImageElement | null => {
-  if (imageCache.value.has(src)) {
-    return imageCache.value.get(src)!
-  }
+// 預載入所有符號圖片
+const preloadImages = () => {
+  const symbolIds = ['H1', 'H2', 'H3', 'H4', 'A', 'K', 'Q', 'J']
   
-  const img = new Image()
-  img.src = src
-  img.onload = () => {
-    imageCache.value.set(src, img)
-  }
-  
-  return null
+  let loadedCount = 0
+  symbolIds.forEach(id => {
+    // 關鍵修正：直接使用 getSymbolAsset 確保 key 一致
+    const src = getSymbolAsset(id)
+    
+    const img = new Image()
+    img.src = src
+    img.onload = () => {
+      // 使用 Vue.set 的替代方式（Vue 3 直接賦值即可）
+      imageCache.value[src] = img
+      loadedCount++
+      if (loadedCount === symbolIds.length) {
+        imagesLoaded.value = true
+        console.log(`[ReelColumn ${props.reelId}] All ${loadedCount} images preloaded`)
+      }
+    }
+    img.onerror = (e) => {
+      console.warn(`[ReelColumn ${props.reelId}] Failed to load: ${src}`, e)
+      loadedCount++
+    }
+  })
 }
+
+// 初始化時預載入圖片
+onMounted(() => {
+  preloadImages()
+})
+
+const getImage = (src: string): HTMLImageElement | undefined => {
+  // console.log(`Get: ${src}, InCache: ${!!imageCache.value[src]}`)
+  return imageCache.value[src]
+}
+
+/*
+const debugInfo = computed(() => {
+  const first = visibleSymbols.value[0]
+  if (!first) return 'No sym'
+  const key = first.assetPath
+  const has = !!imageCache.value[key]
+  const keys = Object.keys(imageCache.value)
+  return `K:${key.slice(-15)}\nH:${has}\nN:${keys.length}\n1:${keys[0]?.slice(-15)}`
+})
+*/
 </script>
 
 <template>
@@ -98,41 +131,44 @@ const loadImage = (src: string): HTMLImageElement | null => {
       ctx.rect(0, 0, symbolWidth, symbolHeight * 3)
     }
   }">
-    <!-- 渲染 7 個符號 -->
-    <v-image
-      v-for="symbol in visibleSymbols"
-      :key="symbol.key"
-      :config="{
-        x: 0,
-        y: symbol.y,
-        width: symbolWidth,
-        height: symbolHeight,
-        image: loadImage(symbol.assetPath)
-      }"
-    />
-    
-    <!-- Fallback: 如果圖片未載入，顯示文字 -->
-    <v-group v-for="symbol in visibleSymbols" :key="`text-${symbol.key}`">
-      <v-rect :config="{
-        x: 0,
-        y: symbol.y,
-        width: symbolWidth,
-        height: symbolHeight,
-        fill: '#FFFFFF',
-        stroke: '#CCCCCC',
-        strokeWidth: 1
-      }" />
-      <v-text :config="{
-        x: 0,
-        y: symbol.y,
-        width: symbolWidth,
-        height: symbolHeight,
-        text: symbol.symbolId,
-        align: 'center',
-        verticalAlign: 'middle',
-        fontSize: 16,
-        fill: '#333333'
-      }" />
-    </v-group>
+    <!-- 渲染符號 -->
+    <template v-for="symbol in visibleSymbols" :key="symbol.key">
+      <!-- 圖片層 (總是存在，透過 visible 控制顯示) -->
+      <v-image
+        :config="{
+          x: 0,
+          y: symbol.y,
+          width: symbolWidth,
+          height: symbolHeight,
+          image: getImage(symbol.assetPath),
+          visible: !!getImage(symbol.assetPath)
+        }"
+      />
+      
+      <!-- Fallback 層 (圖片未載入時顯示) -->
+      <v-group :config="{ visible: !getImage(symbol.assetPath) }">
+        <v-rect :config="{
+          x: 0,
+          y: symbol.y,
+          width: symbolWidth,
+          height: symbolHeight,
+          fill: '#FFFFFF',
+          stroke: '#CCCCCC',
+          strokeWidth: 1
+        }" />
+        <v-text :config="{
+          x: 0,
+          y: symbol.y,
+          width: symbolWidth,
+          height: symbolHeight,
+          text: symbol.symbolId,
+          align: 'center',
+          verticalAlign: 'middle',
+          fontSize: 16,
+          fill: '#333333'
+        }" />
+      </v-group>
+    </template>
   </v-group>
 </template>
+

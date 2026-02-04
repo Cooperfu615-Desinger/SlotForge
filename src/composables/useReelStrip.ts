@@ -48,7 +48,9 @@ export const useReelStrip = (config: ReelStripConfig) => {
         }
 
         const fileName = mapping[symbolId] || 'l1'
-        return `assets/symbols/sym_${fileName}.png`
+        // 使用 Vite 的 BASE_URL 確保部署路徑正確
+        const baseUrl = import.meta.env.BASE_URL || '/'
+        return `${baseUrl}assets/symbols/sym_${fileName}.png`
     }
 
     return {
