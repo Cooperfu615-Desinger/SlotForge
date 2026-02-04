@@ -45,7 +45,7 @@ onUnmounted(() => {
 
 <template>
   <!-- Main Container (Dark Background) -->
-  <div ref="containerRef" class="w-full h-full flex items-center justify-center bg-gray-900 overflow-hidden">
+  <div ref="containerRef" class="w-full h-full flex items-center justify-center bg-gray-100 overflow-hidden">
     
     <!-- Scaled Wrapper (The "Phone" Unit) -->
     <!-- This scales uniformly, preserving aspect ratio of everything inside -->
