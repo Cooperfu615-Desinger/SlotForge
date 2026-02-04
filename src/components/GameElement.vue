@@ -50,7 +50,8 @@ watchEffect(() => {
 const reelId = computed(() => {
   if (props.element.type !== 'symbol') return null
   const match = props.element.id.match(/sym_c(\d+)_r\d+/)
-  return match ? parseInt(match[1]) - 1 : null
+  if (!match || !match[1]) return null
+  return parseInt(match[1]) - 1
 })
 
 // Initialize reel controller if this is a symbol
