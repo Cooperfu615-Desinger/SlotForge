@@ -74,7 +74,7 @@ onUnmounted(() => {
       <img 
         src="/assets/ui/overlay_frame.png" 
         class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none z-50"
-        style="height: 752px; max-width: none; width: auto;"
+        style="height: 750px; max-width: none; width: auto;"
         alt="Device Frame"
       />
       
@@ -82,10 +82,3 @@ onUnmounted(() => {
   
   </div>
 </template>
-
-<style scoped>
-.design-layer {
-  /* Debug Outline */
-  /* border: 1px dashed rgba(255,255,255,0.2); */
-}
-</style>

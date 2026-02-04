@@ -109,7 +109,7 @@ export const useManifestStore = defineStore('manifest', () => {
                 name: "Reel Background",
                 z_index: 5,
                 anchor: "top-left",
-                rect_landscape: { x: 330, y: 175, w: 620, h: 370 },
+                rect_landscape: { x: 292, y: 0, w: 695, h: 720 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/panel_reels_bg.png",
                 listening: true
@@ -128,8 +128,8 @@ export const useManifestStore = defineStore('manifest', () => {
                 type: "button",
                 name: "Buy Feature",
                 z_index: 20,
-                anchor: "center",
-                rect_landscape: { x: 120, y: 80, w: 140, h: 80 },
+                anchor: "top-left",
+                rect_landscape: { x: 40, y: 40, w: 225, h: 132 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/btn_buy_feature.png",
                 listening: true
@@ -141,7 +141,7 @@ export const useManifestStore = defineStore('manifest', () => {
                 z_index: 20,
                 // Centered Top: 1280/2 = 640
                 anchor: "top-left",
-                rect_landscape: { x: 340, y: 15, w: 600, h: 70 },
+                rect_landscape: { x: 330, y: 40, w: 620, h: 95 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/panel_jackpot.png",
                 listening: true
@@ -152,7 +152,7 @@ export const useManifestStore = defineStore('manifest', () => {
                 name: "Game Logo",
                 z_index: 20,
                 anchor: "top-left",
-                rect_landscape: { x: 1050, y: 20, w: 180, h: 80 },
+                rect_landscape: { x: 1015, y: 40, w: 225, h: 132 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/logo_game.png",
                 listening: true
@@ -167,7 +167,7 @@ export const useManifestStore = defineStore('manifest', () => {
                 name: "Marquee",
                 z_index: 20,
                 anchor: "top-left",
-                rect_landscape: { x: 290, y: 590, w: 700, h: 40 },
+                rect_landscape: { x: 330, y: 540, w: 620, h: 67 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/panel_marquee.png",
                 listening: true
@@ -179,8 +179,8 @@ export const useManifestStore = defineStore('manifest', () => {
                 type: "button",
                 name: "Menu Button",
                 z_index: 25,
-                anchor: "center",
-                rect_landscape: { x: 60, y: 670, w: 60, h: 60 },
+                anchor: "top-left",
+                rect_landscape: { x: 40, y: 615, w: 75, h: 75 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/btn_menu.png",
                 listening: true
@@ -191,7 +191,7 @@ export const useManifestStore = defineStore('manifest', () => {
                 name: "Balance Field",
                 z_index: 20,
                 anchor: "top-left",
-                rect_landscape: { x: 120, y: 655, w: 180, h: 40 },
+                rect_landscape: { x: 230, y: 615, w: 265, h: 75 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/field_balance.png",
                 listening: true
@@ -202,7 +202,7 @@ export const useManifestStore = defineStore('manifest', () => {
                 name: "Win Field",
                 z_index: 20,
                 anchor: "top-left",
-                rect_landscape: { x: 320, y: 655, w: 180, h: 40 }, // Next to Balance
+                rect_landscape: { x: 500, y: 615, w: 265, h: 75 }, // Next to Balance
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/field_win.png",
                 listening: true
@@ -213,7 +213,7 @@ export const useManifestStore = defineStore('manifest', () => {
                 name: "Bet Field",
                 z_index: 20,
                 anchor: "top-left",
-                rect_landscape: { x: 520, y: 655, w: 180, h: 40 }, // Next to Win
+                rect_landscape: { x: 770, y: 615, w: 265, h: 75 }, // Next to Win
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/field_bet.png",
                 listening: true
@@ -227,8 +227,8 @@ export const useManifestStore = defineStore('manifest', () => {
                 type: "button",
                 name: "Spin Button",
                 z_index: 25,
-                anchor: "center",
-                rect_landscape: { x: 1180, y: 640, w: 120, h: 120 },
+                anchor: "top-left",
+                rect_landscape: { x: 1088, y: 448, w: 160, h: 160 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/btn_spin.png",
                 listening: true
@@ -238,9 +238,9 @@ export const useManifestStore = defineStore('manifest', () => {
                 type: "button",
                 name: "Auto Button",
                 z_index: 25,
-                anchor: "center",
-                // Left of Spin
-                rect_landscape: { x: 1080, y: 670, w: 60, h: 60 },
+                anchor: "top-left",
+                // Below of Spin
+                rect_landscape: { x: 1180, y: 615, w: 75, h: 75 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/btn_auto.png",
                 listening: true
@@ -250,9 +250,9 @@ export const useManifestStore = defineStore('manifest', () => {
                 type: "button",
                 name: "Turbo Button",
                 z_index: 25,
-                anchor: "center",
-                // Left of Auto? Or above? User image shows them clustered.
-                rect_landscape: { x: 1010, y: 670, w: 60, h: 60 },
+                anchor: "top-left",
+                // Above of Spin
+                rect_landscape: { x: 1080, y: 615, w: 75, h: 75 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/btn_turbo.png",
                 listening: true
