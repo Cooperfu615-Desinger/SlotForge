@@ -9,7 +9,7 @@ export interface ReelConfig {
 }
 
 export const useReelController = (config: ReelConfig, onAllReelsStopped?: () => void) => {
-    // Current Y offset for this reel
+    // Current Y offset for this reel (累積位移量)
     const offsetY = ref(0)
 
     // GSAP Timeline instance
@@ -17,56 +17,46 @@ export const useReelController = (config: ReelConfig, onAllReelsStopped?: () => 
 
     /**
      * Start the reel spin animation
-     * Uses a 4-phase animation:
-     * 1. Spin (fast downward scroll)
-     * 2. Sustain (continuous loop)
-     * 3. Stop (deceleration - continue downward)
-     * 4. Bounce (elastic settle)
+     * 修正後的邏輯：
+     * - offsetY 持續增加 = 符號往下掉落
+     * - 新符號從上方出現（透過 modulus 循環）
      */
     const spin = () => {
         if (timeline) {
-            timeline.kill() // Clean up any existing timeline
+            timeline.kill()
         }
 
         timeline = gsap.timeline()
 
-        const cycleHeight = config.symbolHeight * 5 // 5 symbols in the loop buffer
-
-        // Phase 1 & 2: Spin (Continuous downward scroll with infinite loop illusion)
+        // Phase 1: Spin (高速滾動)
+        // 使用相對位移 '+=' 確保持續累加
         timeline.to(offsetY, {
-            value: 9999,  // Large value to simulate continuous scroll
-            duration: config.spinDuration / 1000,  // Convert ms to seconds
-            ease: 'linear',  // Constant speed for seamless loop
-            modifiers: {
-                // Modulus reset: create infinite scroll illusion
-                value: (value) => {
-                    return parseFloat(value) % cycleHeight
+            value: `+=${config.symbolHeight * 40}`,  // 滾動 40 個符號的距離
+            duration: config.spinDuration / 1000,
+            ease: 'linear',
+            onUpdate: () => {
+                // 每次更新時輸出當前位移（除錯用）
+                if (Math.floor(offsetY.value) % 100 === 0) {
+                    console.log(`[Reel ${config.reelId}] offsetY: ${Math.floor(offsetY.value)}`)
                 }
             }
         })
 
-        // Phase 3 & 4: Stop with Bounce (Continue downward then settle)
+        // Phase 2: Stop with Bounce
+        // 計算最終停止位置（對齊到符號高度的倍數）
         timeline.to(offsetY, {
             value: () => {
-                // Get current position after spin phase
                 const current = offsetY.value
-
-                // Calculate next aligned position (next multiple of symbolHeight)
-                const alignedPosition = Math.ceil(current / config.symbolHeight) * config.symbolHeight
-
-                // Add overshoot (continue falling 2-3 more symbols for dramatic effect)
-                const overshoot = config.symbolHeight * 2.5
-                const targetPosition = alignedPosition + overshoot
-
-                // Use modulus to keep within cycle range
-                return targetPosition % cycleHeight
+                // 找到下一個對齊點
+                const nextAligned = Math.ceil(current / config.symbolHeight) * config.symbolHeight
+                // 多滾 2.5 個符號增加戲劇性
+                return nextAligned + config.symbolHeight * 2.5
             },
-            duration: 0.8,  // 800ms deceleration
-            delay: config.stopDelay / 1000,  // Delay before stopping (for sequential effect)
-            ease: 'back.out(1.7)',  // Elastic bounce effect
+            duration: 0.8,
+            delay: config.stopDelay / 1000,
+            ease: 'back.out(1.7)',
             onComplete: () => {
-                console.log(`[Reel ${config.reelId}] Stopped at offsetY: ${offsetY.value}`)
-                // Notify parent if this is the last reel (reel 4)
+                console.log(`[Reel ${config.reelId}] Stopped at offsetY: ${Math.floor(offsetY.value)}`)
                 if (config.reelId === 4 && onAllReelsStopped) {
                     onAllReelsStopped()
                 }
@@ -82,7 +72,6 @@ export const useReelController = (config: ReelConfig, onAllReelsStopped?: () => 
             timeline.kill()
             timeline = null
         }
-        offsetY.value = 0
     }
 
     return {
