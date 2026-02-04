@@ -30,12 +30,18 @@ export interface SlotManifest {
 // --------------------------------------------------------
 // Grid Generation Helper
 // --------------------------------------------------------
-const REEL_AREA = { x: 190, y: 90, w: 900, h: 540 }
+// Adjusted for tighter layout (matching new design)
 const COLS = 5
 const ROWS = 3
-const GAP = 10
-const CELL_W = 172
-const CELL_H = 173
+const GAP = 5          // Reduced from 10px to 5px
+const CELL_W = 120     // Reduced from 172px to 120px
+const CELL_H = 120     // Reduced from 173px to 120px (square)
+
+// Calculated Reel Area:
+// Width: 5 × (120 + 5) - 5 = 620px
+// Height: 3 × (120 + 5) - 5 = 370px
+// Centered: x = (1280 - 620) / 2 = 330, y = 175 (adjusted for top/bottom bars)
+const REEL_AREA = { x: 330, y: 175, w: 620, h: 370 }
 
 const generateSymbolGrid = (): LayoutElement[] => {
     const symbols: LayoutElement[] = []
@@ -103,7 +109,7 @@ export const useManifestStore = defineStore('manifest', () => {
                 name: "Reel Background",
                 z_index: 5,
                 anchor: "top-left",
-                rect_landscape: { x: 190, y: 90, w: 900, h: 540 },
+                rect_landscape: { x: 330, y: 175, w: 620, h: 370 },
                 rect_portrait: { x: 0, y: 0, w: 0, h: 0 },
                 asset_src: "assets/ui/panel_reels_bg.png",
                 listening: true
