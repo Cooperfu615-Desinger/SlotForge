@@ -94,7 +94,7 @@ const loadImage = (src: string): HTMLImageElement | null => {
   <v-group :config="{
     x: baseX,
     y: baseY,
-    clipFunc: (ctx) => {
+    clipFunc: (ctx: CanvasRenderingContext2D) => {
       ctx.rect(0, 0, symbolWidth, symbolHeight * 3)
     }
   }">

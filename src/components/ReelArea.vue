@@ -23,7 +23,7 @@ const reels = Array.from({ length: 5 }, (_, i) => ({
   <v-group :config="{
     x: REEL_AREA.x,
     y: REEL_AREA.y,
-    clipFunc: (ctx) => {
+    clipFunc: (ctx: CanvasRenderingContext2D) => {
       ctx.rect(0, 0, REEL_AREA.w, REEL_AREA.h)
     }
   }">

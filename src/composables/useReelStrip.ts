@@ -21,9 +21,9 @@ export const useReelStrip = (config: ReelStripConfig) => {
      * 輪帶是一個循環陣列，包含 30 個隨機符號
      */
     const generateStrip = () => {
-        strip.value = Array.from({ length: stripLength }, () => {
+        strip.value = Array.from({ length: stripLength }, (): string => {
             const randomIndex = Math.floor(Math.random() * symbolPool.length)
-            return symbolPool[randomIndex]
+            return symbolPool[randomIndex]!
         })
         console.log(`[ReelStrip ${config.reelId}] Generated:`, strip.value.slice(0, 10).join(', '), '...')
     }
