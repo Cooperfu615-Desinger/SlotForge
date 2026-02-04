@@ -5,11 +5,11 @@ const containerRef = ref<HTMLElement | null>(null)
 // Scale the entire "Phone Wrapper" to fit the window, preserving aspect ratio.
 const wrapperScale = ref(1)
 
-// Design Reference:
-// Frame Inner Height for 720px content should be around 740px-750px to cover edges.
-// Let's assume the "Phone" is roughly 1500x750 in design space (just an example container size).
-// The key is: Layer 1 is 1280x720 fixed.
-// Layer 2 is the frame centered.
+// Responsive Scaling Logic:
+// - Phone frame: 1400px (width) × 750px (height)
+// - Fixed padding: 40px (horizontal) + 20px (vertical)
+// - Scale dynamically to fit available space while maintaining aspect ratio
+// - Never clips or crops the phone frame
 
 const updateScale = () => {
   if (!containerRef.value) return
@@ -17,20 +17,25 @@ const updateScale = () => {
   const parent = containerRef.value
   const { clientWidth, clientHeight } = parent
   
-  // We want to fit a "Virtual Phone Area" into the screen.
-  // Let's define a safe area that includes the frame.
-  // Frame fits 720px height, so maybe 760px total height tolerance.
-  // Width: arbitrary, say 1600px to include side bezels.
-  const VIRTUAL_WIDTH = 1400 
-  const VIRTUAL_HEIGHT = 760
-
-  const scaleX = clientWidth / VIRTUAL_WIDTH
-  const scaleY = clientHeight / VIRTUAL_HEIGHT
+  // Phone frame dimensions (actual size including bezels)
+  const PHONE_WIDTH = 1400
+  const PHONE_HEIGHT = 750
   
-  // Fit containment
-  wrapperScale.value = Math.min(scaleX, scaleY, 1) // Cap at 1.0 to avoid upscaling blur if screen is huge? Or let it grow. User said "Full screen", usually implies fit.
-  // Let's remove Cap at 1 for "Fit to screen" experience, but keep aspect ratio.
-  wrapperScale.value = Math.min(scaleX, scaleY) * 0.95 // 95% margin
+  // Fixed padding (in pixels)
+  const PADDING_HORIZONTAL = 40  // Left + Right
+  const PADDING_VERTICAL = 20    // Top + Bottom
+  
+  // Calculate available space after padding
+  const availableWidth = clientWidth - (PADDING_HORIZONTAL * 2)
+  const availableHeight = clientHeight - (PADDING_VERTICAL * 2)
+  
+  // Calculate scale ratios
+  const scaleX = availableWidth / PHONE_WIDTH
+  const scaleY = availableHeight / PHONE_HEIGHT
+  
+  // Use the smaller scale to ensure the phone fits completely
+  // Cap at 1.0 to prevent upscaling beyond original size
+  wrapperScale.value = Math.min(scaleX, scaleY, 1.0)
 }
 
 onMounted(() => {
