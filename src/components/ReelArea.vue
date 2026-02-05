@@ -1,41 +1,59 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useManifestStore } from '../stores/manifest'
 import ReelColumn from './ReelColumn.vue'
 
-// Reel 區域配置（從 manifest.ts 複製）
-const REEL_AREA = { x: 330, y: 150, w: 620, h: 370 }
-const SYMBOL_WIDTH = 120
-const SYMBOL_HEIGHT = 125  // 120px + 5px gap
-const GAP = 5
+const store = useManifestStore()
 
-// 生成 5 個 Reel 的配置
-const reels = Array.from({ length: 5 }, (_, i) => ({
-  reelId: i,
-  baseX: i * (SYMBOL_WIDTH + GAP),  // 相對於 Group 的 X
-  baseY: 0  // 相對於 Group 的 Y
-}))
+// Reactive Configuration from Store
+const reelAreaRect = computed(() => store.reelAreaRect)  // Symbol positions
+const clippingRect = computed(() => store.clippingRect)  // Visual clipping mask
+const gridConfig = computed(() => store.gridConfig)
+
+// Generate Reel Column Configurations
+const reels = computed(() => {
+  const { cols, cell_w, gap, gap_x } = gridConfig.value
+  const gapX = gap_x ?? gap ?? 0
+  return Array.from({ length: cols }, (_, i) => ({
+    reelId: i,
+    baseX: i * (cell_w + gapX),  // Relative to Group X
+    baseY: 0
+  }))
+})
+
+// Passed to children
+const symbolWidth = computed(() => gridConfig.value.cell_w)
+const assetHeight = computed(() => gridConfig.value.cell_h) // Raw image height
+const symbolHeight = computed(() => { // Pitch (Row Height)
+    const { cell_h, gap, gap_y } = gridConfig.value
+    const gapY = gap_y ?? gap ?? 0
+    return cell_h + gapY
+}) 
+
+// Calculate clipping offset relative to reel area
+const clipX = computed(() => clippingRect.value.x - reelAreaRect.value.x)
+const clipY = computed(() => clippingRect.value.y - reelAreaRect.value.y)
 </script>
 
 <template>
-  <!-- 整體遮罩容器：620x370 區域 -->
+  <!-- Main Mask Container -->
   <v-group :config="{
-    x: REEL_AREA.x,
-    y: REEL_AREA.y,
+    x: reelAreaRect.x,
+    y: reelAreaRect.y,
     clipFunc: (ctx: CanvasRenderingContext2D) => {
-      ctx.rect(0, 0, REEL_AREA.w, REEL_AREA.h)
+      ctx.rect(clipX, clipY, clippingRect.w, clippingRect.h)
     }
   }">
-    <!-- 5 個 ReelColumn -->
+    <!-- Reel Columns -->
     <ReelColumn
       v-for="reel in reels"
-      :key="reel.reelId"
+      :key="`${reel.reelId}_${symbolWidth}`"
       :reel-id="reel.reelId"
       :base-x="reel.baseX"
       :base-y="reel.baseY"
-      :symbol-width="SYMBOL_WIDTH"
-      :symbol-height="SYMBOL_HEIGHT"
+      :symbol-width="symbolWidth"
+      :symbol-height="symbolHeight"
+      :asset-height="assetHeight"
     />
   </v-group>
-  
-  <!-- Spin Button (保留原有的按鈕) -->
-
 </template>

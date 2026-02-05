@@ -10,9 +10,14 @@ const props = defineProps<{
   baseY: number
   symbolWidth: number
   symbolHeight: number
+  assetHeight?: number // New: Actual image height (excluding gap)
 }>()
 
 const gameStore = useGameStore()
+
+// Display Height & Gap Offset (Center the symbol in the slot)
+const displayHeight = computed(() => props.assetHeight ?? props.symbolHeight)
+const gapOffset = computed(() => (props.symbolHeight - displayHeight.value) / 2)
 
 // 建立輪帶資料
 const { generateStrip, getSymbolAt, getSymbolAsset } = useReelStrip({
@@ -29,7 +34,7 @@ onMounted(() => {
 const reelController = useReelController(
   {
     reelId: props.reelId,
-    symbolHeight: props.symbolHeight
+    symbolHeight: props.symbolHeight // Controller needs Pitch
   },
   () => {
     if (props.reelId === 4) {
@@ -57,8 +62,8 @@ const visibleSymbols = computed(() => {
     const assetPath = getSymbolAsset(symbolId)
     
     // 計算 Y 位置（相對於 Group）
-    // 基準位置 + 索引偏移 - 動畫位移的餘數
-    const y = (i - 2) * props.symbolHeight - (offset % props.symbolHeight)
+    // 基準位置 + 索引偏移 - 動畫位移的餘數 + 垂直置中偏移
+    const y = ((i - 2) * props.symbolHeight - (offset % props.symbolHeight)) + gapOffset.value
     
     return {
       key: `${stripIndex}-${symbolId}`,
@@ -139,7 +144,7 @@ const debugInfo = computed(() => {
           x: 0,
           y: symbol.y,
           width: symbolWidth,
-          height: symbolHeight,
+          height: displayHeight,
           image: getImage(symbol.assetPath),
           visible: !!getImage(symbol.assetPath)
         }"

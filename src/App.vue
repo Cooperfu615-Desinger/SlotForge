@@ -3,6 +3,7 @@ import { NConfigProvider, type GlobalThemeOverrides, NMessageProvider } from 'na
 import DeviceContainer from './components/DeviceContainer.vue'
 import GameRenderer from './components/GameRenderer.vue'
 import InspectorPanel from './components/InspectorPanel.vue'
+import TopNavBar from './components/TopNavBar.vue'
 
 const lightTheme: GlobalThemeOverrides = {
   common: {
@@ -15,12 +16,12 @@ const lightTheme: GlobalThemeOverrides = {
 <template>
   <n-config-provider :theme-overrides="lightTheme">
     <n-message-provider>
-      <div class="h-screen w-screen grid grid-cols-[1fr_320px] grid-rows-[64px_1fr] bg-gray-50 overflow-hidden">
+      <div class="h-screen w-screen grid grid-cols-[1fr_320px] grid-rows-[auto_1fr] bg-gray-50 overflow-hidden">
         
         <!-- Top Bar: Global Nav -->
-        <header class="col-span-2 row-span-1 bg-white border-b border-gray-200 shadow-sm flex items-center px-4 z-10">
-          <h1 class="text-xl font-bold text-gray-800">SlotForge <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded ml-2">V2.0</span></h1>
-        </header>
+        <div class="col-span-2 row-span-1 z-20">
+          <TopNavBar />
+        </div>
 
         <!-- Center Stage: Viewport -->
         <main class="col-span-1 row-span-1 relative flex items-center justify-center overflow-hidden">

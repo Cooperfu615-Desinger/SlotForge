@@ -69,6 +69,9 @@ export const useGameStore = defineStore('game', () => {
     const currentSpeedMode = ref<SpeedMode>('normal')
     const currentPreset = computed(() => SPEED_PRESETS[currentSpeedMode.value])
 
+    // Lines / Template
+    const currentLines = ref<number>(25)
+
     // Actions
     const startSpin = () => {
         if (gameState.value !== 'IDLE') {
@@ -89,6 +92,10 @@ export const useGameStore = defineStore('game', () => {
         currentSpeedMode.value = mode
     }
 
+    const setLines = (lines: number) => {
+        currentLines.value = lines
+    }
+
     return {
         gameState,
         isSpinning,
@@ -96,7 +103,9 @@ export const useGameStore = defineStore('game', () => {
         currentPreset,
         startSpin,
         stopSpin,
-        setSpeedMode
+        setSpeedMode,
+        currentLines,
+        setLines,
     }
 })
 
