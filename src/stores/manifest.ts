@@ -319,6 +319,7 @@ export const useManifestStore = defineStore('manifest', () => {
         loadTemplate,
         gridConfig,     // Export for ReelArea
         reelAreaRect,   // Export for ReelArea
-        clippingRect    // Export for ReelArea (visual clipping mask)
+        clippingRect,   // Export for ReelArea (visual clipping mask)
+        reelCount: computed(() => gridConfig.value.cols) // Export total reel count
     }
 })

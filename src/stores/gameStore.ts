@@ -65,6 +65,9 @@ export const useGameStore = defineStore('game', () => {
     const gameState = ref<GameState>('IDLE')
     const isSpinning = computed(() => gameState.value !== 'IDLE')
 
+    // Sequencer / Inspector Mode Toggle
+    const isSequencerEnabled = ref(false) // false = Inspector Mode, true = Play Mode
+
     // Speed Mode
     const currentSpeedMode = ref<SpeedMode>('normal')
     const currentPreset = computed(() => SPEED_PRESETS[currentSpeedMode.value])
@@ -106,6 +109,7 @@ export const useGameStore = defineStore('game', () => {
         setSpeedMode,
         currentLines,
         setLines,
+        isSequencerEnabled,
     }
 })
 

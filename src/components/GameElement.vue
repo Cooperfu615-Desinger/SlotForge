@@ -94,16 +94,22 @@ const config = computed(() => ({
 
 const handleClick = () => {
   if (props.element.listening !== false) {
-    // If this is the Spin button, trigger spin
-    if (props.element.id === 'btn_spin') {
-      console.log('[GameElement] Spin button clicked!')
-      gameStore.startSpin()
+    // Mode Check
+    if (gameStore.isSequencerEnabled) {
+      // --- Play Mode (Sequencer ON) ---
+      // Only Spin Button works
+      if (props.element.id === 'btn_spin') {
+        console.log('[GameElement] Spin button clicked (Play Mode)!')
+        gameStore.startSpin()
+      }
+      // Ignore all other clicks (no inspector selection)
       return
     }
-    
-    // Otherwise, just select the element
+
+    // --- Inspector Mode (Sequencer OFF) ---
+    // Allow selecting everything for inspection, even the spin button
     store.setSelected(props.element.id)
-    console.log(`Selected: ${props.element.id}`)
+    console.log(`Selected for Inspection: ${props.element.id}`)
   }
 }
 

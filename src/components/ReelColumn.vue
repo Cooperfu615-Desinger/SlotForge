@@ -4,6 +4,8 @@ import { useReelStrip } from '../composables/useReelStrip'
 import { useReelController } from '../composables/useReelController'
 import { useGameStore } from '../stores/gameStore'
 
+import { useManifestStore } from '../stores/manifest'
+
 const props = defineProps<{
   reelId: number
   baseX: number
@@ -15,6 +17,24 @@ const props = defineProps<{
 }>()
 
 const gameStore = useGameStore()
+const manifestStore = useManifestStore()
+
+const handleSymbolClick = (index: number) => {
+  // Only allow selection in Inspector Mode
+  if (gameStore.isSequencerEnabled) return
+
+  // Calculate logical row index (visibleSymbols has 2 buffer rows on top)
+  // Index 2 -> Row 0, Index 3 -> Row 1, etc.
+  const rowIndex = index - 2
+  const visibleRowCount = props.visibleRows ?? 3
+
+  // Only allow valid grid positions
+  if (rowIndex >= 0 && rowIndex < visibleRowCount) {
+    const symbolId = `sym_c${props.reelId + 1}_r${rowIndex + 1}`
+    manifestStore.setSelected(symbolId)
+    console.log(`[ReelColumn] Selected Symbol: ${symbolId}`)
+  }
+}
 
 // Display Height & Gap Offset (Center the symbol in the slot)
 const displayHeight = computed(() => props.assetHeight ?? props.symbolHeight)
@@ -38,7 +58,10 @@ const reelController = useReelController(
     symbolHeight: props.symbolHeight // Controller needs Pitch
   },
   () => {
-    if (props.reelId === 4) {
+    // Check if this is the last reel in the current setup
+    // 3x3 = 3 reels (indices 0,1,2), last is 2
+    // 3x5 = 5 reels (indices 0,1,2,3,4), last is 4
+    if (props.reelId === manifestStore.reelCount - 1) {
       gameStore.stopSpin()
     }
   }
@@ -138,7 +161,7 @@ const debugInfo = computed(() => {
     }
   }">
     <!-- 渲染符號 -->
-    <template v-for="symbol in visibleSymbols" :key="symbol.key">
+    <template v-for="(symbol, index) in visibleSymbols" :key="symbol.key">
       <!-- 圖片層 (總是存在，透過 visible 控制顯示) -->
       <v-image
         :config="{
@@ -149,10 +172,16 @@ const debugInfo = computed(() => {
           image: getImage(symbol.assetPath),
           visible: !!getImage(symbol.assetPath)
         }"
+        @click="handleSymbolClick(index)"
+        @tap="handleSymbolClick(index)"
       />
       
       <!-- Fallback 層 (圖片未載入時顯示) -->
-      <v-group :config="{ visible: !getImage(symbol.assetPath) }">
+      <v-group 
+        :config="{ visible: !getImage(symbol.assetPath) }"
+        @click="handleSymbolClick(index)"
+        @tap="handleSymbolClick(index)"
+      >
         <v-rect :config="{
           x: 0,
           y: symbol.y,
@@ -174,6 +203,21 @@ const debugInfo = computed(() => {
           fill: '#333333'
         }" />
       </v-group>
+
+      <!-- Selection Highlight (Cyan Border) -->
+      <!-- Only show if this logical position matches the selected ID -->
+      <v-rect 
+        v-if="manifestStore.selectedElementId === `sym_c${reelId + 1}_r${index - 1}`" 
+        :config="{
+          x: 0,
+          y: symbol.y,
+          width: symbolWidth,
+          height: symbolHeight,
+          stroke: '#06b6d4',
+          strokeWidth: 4,
+          listening: false
+        }"
+      />
     </template>
   </v-group>
 </template>

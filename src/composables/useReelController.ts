@@ -81,7 +81,7 @@ export const useReelController = (config: ReelConfig, onAllReelsStopped?: () => 
                 ease: `back.out(${preset.bounceStrength})`,
                 onComplete: () => {
                     console.log(`[Reel ${config.reelId}] Stopped at offsetY: ${Math.floor(offsetY.value)}`)
-                    if (config.reelId === 4 && onAllReelsStopped) {
+                    if (onAllReelsStopped) {
                         onAllReelsStopped()
                     }
                 }
@@ -90,7 +90,7 @@ export const useReelController = (config: ReelConfig, onAllReelsStopped?: () => 
             // 無回彈時，Phase 3 完成後直接回調
             timeline.call(() => {
                 console.log(`[Reel ${config.reelId}] Stopped at offsetY: ${Math.floor(offsetY.value)}`)
-                if (config.reelId === 4 && onAllReelsStopped) {
+                if (onAllReelsStopped) {
                     onAllReelsStopped()
                 }
             })

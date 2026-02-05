@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { NConfigProvider, type GlobalThemeOverrides, NMessageProvider } from 'naive-ui'
+import { NConfigProvider, type GlobalThemeOverrides, NMessageProvider, NSwitch } from 'naive-ui'
 import DeviceContainer from './components/DeviceContainer.vue'
 import GameRenderer from './components/GameRenderer.vue'
 import InspectorPanel from './components/InspectorPanel.vue'
 import TopNavBar from './components/TopNavBar.vue'
+import { useGameStore } from './stores/gameStore'
+
+const gameStore = useGameStore()
 
 const lightTheme: GlobalThemeOverrides = {
   common: {
@@ -37,7 +40,18 @@ const lightTheme: GlobalThemeOverrides = {
 
         <!-- Bottom Panel: Sequencer -->
         <section class="col-span-1 row-span-1 bg-white border-t border-gray-200 shadow-sm z-10">
-          <div class="p-2 border-b border-gray-100 font-bold text-xs text-gray-500 uppercase tracking-wider">Sequencer Timeline</div>
+          <div class="p-2 border-b border-gray-100 font-bold text-xs text-gray-500 uppercase tracking-wider flex items-center justify-between">
+            <span>Sequencer Timeline</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] text-gray-400 font-normal">
+                {{ gameStore.isSequencerEnabled ? 'PLAY MODE' : 'INSPECTOR MODE' }}
+              </span>
+              <n-switch v-model:value="gameStore.isSequencerEnabled" size="small">
+                <template #checked>ON</template>
+                <template #unchecked>OFF</template>
+              </n-switch>
+            </div>
+          </div>
           <div class="p-4 text-center text-gray-400">
             GSAP Timeline Control
           </div>
