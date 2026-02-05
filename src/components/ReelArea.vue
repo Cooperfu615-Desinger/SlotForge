@@ -54,6 +54,7 @@ const clipY = computed(() => clippingRect.value.y - reelAreaRect.value.y)
       :symbol-width="symbolWidth"
       :symbol-height="symbolHeight"
       :asset-height="assetHeight"
+      :visible-rows="gridConfig.rows"
     />
   </v-group>
 </template>

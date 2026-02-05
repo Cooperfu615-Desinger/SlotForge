@@ -11,6 +11,7 @@ const props = defineProps<{
   symbolWidth: number
   symbolHeight: number
   assetHeight?: number // New: Actual image height (excluding gap)
+  visibleRows?: number // New: Number of visible rows (default 3)
 }>()
 
 const gameStore = useGameStore()
@@ -133,7 +134,7 @@ const debugInfo = computed(() => {
     x: baseX,
     y: baseY,
     clipFunc: (ctx: CanvasRenderingContext2D) => {
-      ctx.rect(0, 0, symbolWidth, symbolHeight * 3)
+      ctx.rect(0, 0, symbolWidth, symbolHeight * (visibleRows ?? 3))
     }
   }">
     <!-- 渲染符號 -->

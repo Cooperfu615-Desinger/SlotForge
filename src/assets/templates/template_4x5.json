@@ -2,15 +2,23 @@
     "grid": {
         "rows": 4,
         "cols": 5,
-        "cell_w": 160,
-        "cell_h": 130,
-        "gap": 5
+        "cell_w": 115,
+        "cell_h": 95,
+        "gap": 5,
+        "gap_x": 7,
+        "gap_y": 5
     },
     "reel_area_rect": {
-        "x": 235,
-        "y": 120,
+        "x": 338,
+        "y": 137,
         "w": 820,
         "h": 535
+    },
+    "clipping_rect": {
+        "x": 235,
+        "y": 130,
+        "w": 820,
+        "h": 555
     },
     "panel_reels_rect": {
         "x": 215,
