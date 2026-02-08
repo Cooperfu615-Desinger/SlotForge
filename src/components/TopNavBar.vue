@@ -6,47 +6,67 @@ import { useManifestStore } from '../stores/manifest'
 const gameStore = useGameStore()
 const manifestStore = useManifestStore()
 
-const currentLines = computed(() => gameStore.currentLines)
+const currentTemplate = computed(() => manifestStore.currentGrid || '3x5')
 
-const templateOptions = [
-  { label: "1 Line", grid: "3x3", lines: 1 },
-  { label: "3 Lines", grid: "3x3", lines: 3 },
-  { label: "5 Lines", grid: "3x3", lines: 5 },
-  { label: "9 Lines", grid: "3x5", lines: 9 },
-  { label: "15 Lines", grid: "3x5", lines: 15 },
-  { label: "20 Lines", grid: "3x5", lines: 20 },
-  { label: "25 Lines", grid: "3x5", lines: 25 }, // Default
-  { label: "50 Lines", grid: "4x5", lines: 50 }
+// Rich Button Definitions (Data Driven)
+const templateGroups = [
+  {
+    id: 'classic',
+    label: '1, 3, 5 Lines',
+    subLabel: '3x3 Reels',
+    template: '3x3',
+    defaultLines: 5
+  },
+  {
+    id: 'standard',
+    label: '9, 15, 20, 25 Lines',
+    subLabel: '3x5 Reels',
+    template: '3x5',
+    defaultLines: 25
+  },
+  {
+    id: 'highroller',
+    label: '50 Lines',
+    subLabel: '4x5 Reels',
+    template: '4x5',
+    defaultLines: 50
+  }
 ]
 
-const handleSelect = (option: { label: string, grid: string, lines: number }) => {
+const handleTemplateSelect = (group: typeof templateGroups[0]) => {
   // 1. Update Game Store (Lines)
-  gameStore.setLines(option.lines)
+  gameStore.setLines(group.defaultLines)
   
   // 2. Load Template (Manifest Store)
-  manifestStore.loadTemplate(option.grid)
-  
-  // 3. Re-render is handled by reactivity in stores
+  manifestStore.loadTemplate(group.template)
 }
 </script>
 
 <template>
   <header class="w-full bg-white border-b border-gray-200 shadow-sm z-20">
-    <!-- Horizontal Scroll Container -->
-    <div class="flex flex-row overflow-x-auto gap-3 p-2 no-scrollbar items-center">
+    <!-- Rich Navigation Ribbon -->
+    <div class="flex flex-row overflow-x-auto gap-3 p-2 no-scrollbar">
       
       <button 
-        v-for="opt in templateOptions" 
-        :key="opt.lines"
-        @click="handleSelect(opt)"
-        class="transition-all duration-200 rounded-full px-4 py-1 text-sm font-medium shadow-sm cursor-pointer whitespace-nowrap border"
+        v-for="group in templateGroups" 
+        :key="group.id"
+        @click="handleTemplateSelect(group)"
+        class="flex flex-col items-center justify-center px-4 py-2 rounded-lg border transition-all duration-200 cursor-pointer"
         :class="[
-          currentLines === opt.lines 
-            ? 'bg-violet-600 text-white border-violet-600 shadow-md' 
-            : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+          currentTemplate === group.template
+            ? 'bg-violet-600 border-violet-600 text-white shadow-md ring-2 ring-violet-200' 
+            : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
         ]"
       >
-        {{ opt.label }}
+        <!-- Top Line: Line Counts -->
+        <span class="font-bold text-sm leading-tight whitespace-nowrap">
+          {{ group.label }}
+        </span>
+        
+        <!-- Sub Line: Reel Dimensions -->
+        <span class="text-xs opacity-80 mt-0.5 whitespace-nowrap">
+          {{ group.subLabel }}
+        </span>
       </button>
 
     </div>

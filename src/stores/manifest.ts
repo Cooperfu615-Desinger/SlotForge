@@ -317,6 +317,7 @@ export const useManifestStore = defineStore('manifest', () => {
         selectedElementId,
         setSelected,
         loadTemplate,
+        currentGrid,    // Export for TopNavBar template tracking
         gridConfig,     // Export for ReelArea
         reelAreaRect,   // Export for ReelArea
         clippingRect,   // Export for ReelArea (visual clipping mask)
