@@ -69,13 +69,13 @@ const handleBatchUpload = async (event: Event) => {
     }
   }
   
-  alert(`Batch upload complete: ${uploadCount}/${files.length} files matched`)
+  alert(`批次上傳完成：已匹配 ${uploadCount}/${files.length} 個檔案`)
   input.value = '' // Reset input
 }
 
 // Reset all custom assets
 const handleResetAll = () => {
-  if (confirm('Are you sure you want to reset all custom assets?')) {
+  if (confirm('確定要重置所有自訂素材嗎？')) {
     forgeStore.resetAssets()
   }
 }
@@ -84,7 +84,7 @@ const handleResetAll = () => {
 const downloadScreenshot = () => {
   const stage = (window as any).Konva?.stages[0]
   if (!stage) {
-    alert('Unable to access stage')
+    alert('無法存取畫布')
     return
   }
   
@@ -103,7 +103,7 @@ const downloadScreenshot = () => {
 // Get status and warning for each asset
 const getAssetStatus = (assetId: string) => {
   const customAsset = forgeStore.getAsset(assetId)
-  return customAsset ? 'Custom' : 'Default'
+  return customAsset ? '自訂' : '系統預設'
 }
 
 const getSizeWarning = (assetId: string, specWidth: number, specHeight: number) => {
@@ -111,7 +111,7 @@ const getSizeWarning = (assetId: string, specWidth: number, specHeight: number) 
   if (!customAsset) return null
   
   if (customAsset.width !== specWidth || customAsset.height !== specHeight) {
-    return `Size mismatch: ${customAsset.width}x${customAsset.height}`
+    return `⚠️ 尺寸不符 (原圖: ${customAsset.width}x${customAsset.height})`
   }
   return null
 }
@@ -121,8 +121,8 @@ const getSizeWarning = (assetId: string, specWidth: number, specHeight: number) 
   <div class="h-full flex flex-col bg-white">
     <!-- Header -->
     <div class="p-4 border-b border-gray-200 bg-gray-50">
-      <h2 class="font-bold text-gray-700">Asset Manager</h2>
-      <p class="text-xs text-gray-500 mt-1">Manage template assets ({{ assetBOM.length }} unique)</p>
+      <h2 class="font-bold text-gray-700">素材管理器</h2>
+      <p class="text-xs text-gray-500 mt-1">管理當前模版素材 (共 {{ assetBOM.length }} 項)</p>
     </div>
 
     <!-- Toolbar -->
@@ -136,14 +136,14 @@ const getSizeWarning = (assetId: string, specWidth: number, specHeight: number) 
           class="hidden"
         />
         <div class="px-3 py-2 bg-white text-gray-700 border border-gray-300 text-sm font-semibold rounded hover:bg-gray-50 transition-colors text-center shadow-sm">
-          Batch Upload
+          批次上傳
         </div>
       </label>
       <button 
         @click="handleResetAll"
         class="px-3 py-2 bg-white text-gray-700 border border-gray-300 text-sm font-semibold rounded hover:bg-gray-50 transition-colors shadow-sm"
       >
-        Reset All
+        全部重置
       </button>
     </div>
 
@@ -160,7 +160,7 @@ const getSizeWarning = (assetId: string, specWidth: number, specHeight: number) 
           <span 
             :class="[
               'text-xs px-2 py-0.5 rounded font-semibold border',
-              getAssetStatus(asset.id) === 'Custom' 
+              getAssetStatus(asset.id) === '自訂' 
                 ? 'bg-gray-100 text-gray-900 border-gray-300' 
                 : 'bg-gray-50 text-gray-400 border-gray-200'
             ]"
@@ -171,7 +171,7 @@ const getSizeWarning = (assetId: string, specWidth: number, specHeight: number) 
 
         <!-- Spec & Warning -->
         <div class="text-xs text-gray-500 mb-2">
-          <span class="font-semibold">Spec:</span> {{ asset.specWidth }}×{{ asset.specHeight }}
+          <span class="font-semibold">建議尺寸:</span> {{ asset.specWidth }}×{{ asset.specHeight }}
           <div 
             v-if="getSizeWarning(asset.id, asset.specWidth, asset.specHeight)"
             class="text-orange-600 font-semibold mt-1"
@@ -189,13 +189,13 @@ const getSizeWarning = (assetId: string, specWidth: number, specHeight: number) 
             class="hidden"
           />
           <div class="px-3 py-1.5 bg-white text-gray-700 text-xs font-semibold rounded hover:bg-gray-50 transition-colors text-center border border-gray-300">
-            Upload Replacement
+            更換圖片
           </div>
         </label>
       </div>
 
       <div v-if="assetBOM.length === 0" class="text-center text-gray-400 py-8">
-        No assets found in current template
+        當前模版中未找到素材
       </div>
     </div>
 
@@ -205,7 +205,7 @@ const getSizeWarning = (assetId: string, specWidth: number, specHeight: number) 
         @click="downloadScreenshot"
         class="w-full py-4 bg-gray-50 text-gray-700 font-semibold hover:bg-gray-100 transition-all border-t border-white"
       >
-        Export Screenshot
+        匯出畫面截圖
       </button>
     </div>
   </div>

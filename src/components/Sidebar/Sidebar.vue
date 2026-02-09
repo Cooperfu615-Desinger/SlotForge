@@ -20,7 +20,7 @@ const activeTab = ref<Tab>('inspector')
             : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
         ]"
       >
-        Inspector
+        屬性
       </button>
       <button 
         @click="activeTab = 'assets'"
@@ -31,7 +31,8 @@ const activeTab = ref<Tab>('inspector')
             : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
         ]"
       >
-        Assets
+        素材
+      
       </button>
     </div>
 

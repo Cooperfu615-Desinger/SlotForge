@@ -36,13 +36,13 @@ const selectedElement = computed(() => {
       
       <!-- ID Section -->
       <div class="group">
-        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Element ID</label>
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">元件 ID</label>
         <div class="text-lg font-mono text-gray-900 break-all">{{ selectedElement.id }}</div>
       </div>
 
       <!-- Asset Section -->
       <div class="group">
-         <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Asset Source</label>
+         <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">資源來源</label>
          <div class="mt-1 p-2 bg-gray-100 rounded text-sm text-gray-600 break-all font-mono">
            {{ selectedElement.asset_src || 'No Asset Configured' }}
          </div>
@@ -56,18 +56,18 @@ const selectedElement = computed(() => {
       <!-- Specs Section -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</label>
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">類型</label>
           <div class="text-gray-900 text-sm">{{ selectedElement.type }}</div>
         </div>
         <div>
-           <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Z-Index</label>
+           <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">圖層層級 (Z-Index)</label>
            <div class="text-gray-900 text-sm">{{ selectedElement.z_index }}</div>
         </div>
       </div>
 
       <!-- Coords Section -->
       <div class="bg-gray-50 rounded p-3 border border-gray-200">
-        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-2">Coordinates (Logical)</label>
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-2">空間座標</label>
         <div class="grid grid-cols-2 gap-2 text-sm font-mono">
             <div class="flex justify-between">
                 <span class="text-gray-400">X:</span>
@@ -95,7 +95,7 @@ const selectedElement = computed(() => {
       <svg class="w-12 h-12 mb-2 opacity-20" fill="currentColor" viewBox="0 0 20 20">
         <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
       </svg>
-      <p class="text-sm">Select an element to inspect</p>
+      <p class="text-sm">請選擇元件以檢視屬性</p>
     </div>
 
   </div>
