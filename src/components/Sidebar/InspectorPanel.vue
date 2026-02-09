@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useManifestStore } from '../stores/manifest'
-import { useGameStore } from '../stores/gameStore'
+import { useManifestStore } from '../../stores/manifest'
+import { useGameStore } from '../../stores/gameStore'
 
 const store = useManifestStore()
 const gameStore = useGameStore()

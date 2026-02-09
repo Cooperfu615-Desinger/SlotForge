@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useManifestStore } from '../stores/manifest'
-import { useForgeStore } from '../stores/forgeStore'
+import { useManifestStore } from '../../stores/manifest'
+import { useForgeStore } from '../../stores/forgeStore'
 
 const manifestStore = useManifestStore()
 const forgeStore = useForgeStore()

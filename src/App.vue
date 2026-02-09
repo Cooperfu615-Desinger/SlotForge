@@ -2,7 +2,7 @@
 import { NConfigProvider, type GlobalThemeOverrides, NMessageProvider, NSwitch } from 'naive-ui'
 import DeviceContainer from './components/DeviceContainer.vue'
 import GameRenderer from './components/GameRenderer.vue'
-import RightSidebar from './components/RightSidebar.vue'
+import Sidebar from './components/Sidebar/Sidebar.vue'
 import TopNavBar from './components/TopNavBar.vue'
 import { useGameStore } from './stores/gameStore'
 
@@ -35,7 +35,7 @@ const lightTheme: GlobalThemeOverrides = {
 
         <!-- Right Panel: Tabbed Sidebar -->
         <aside class="col-span-1 row-span-2 bg-white border-l border-gray-200 shadow-sm flex flex-col z-10 overflow-hidden">
-          <RightSidebar />
+          <Sidebar />
         </aside>
 
         <!-- Bottom Panel: Sequencer -->
