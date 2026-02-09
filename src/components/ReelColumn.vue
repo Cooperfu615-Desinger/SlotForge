@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useReelStrip } from '../composables/useReelStrip'
 import { useReelController } from '../composables/useReelController'
 import { useGameStore } from '../stores/gameStore'
+import { useForgeStore } from '../stores/forgeStore'
 
 import { useManifestStore } from '../stores/manifest'
 
@@ -18,6 +19,8 @@ const props = defineProps<{
 
 const gameStore = useGameStore()
 const manifestStore = useManifestStore()
+const forgeStore = useForgeStore()
+
 
 const handleSymbolClick = (index: number) => {
   // Only allow selection in Inspector Mode
@@ -85,7 +88,18 @@ const visibleSymbols = computed(() => {
   return Array.from({ length: totalSymbols }, (_, i) => {
     const stripIndex = currentIndex + i - 2  // 從上方 2 個開始
     const symbolId = getSymbolAt(stripIndex)
-    const assetPath = getSymbolAsset(symbolId)
+    let assetPath = getSymbolAsset(symbolId)
+    
+    // Check for custom asset from ForgeStore
+    // Extract ID (filename without extension) from assetPath
+    const match = assetPath.match(/\/([^\/]+)\.(png|jpg|jpeg|webp|svg)$/i)
+    if (match && match[1]) {
+      const assetId = match[1]
+      const customAsset = forgeStore.getAsset(assetId)
+      if (customAsset) {
+        assetPath = customAsset.url
+      }
+    }
     
     // 計算 Y 位置（相對於 Group）
     // 基準位置 + 索引偏移 - 動畫位移的餘數 + 垂直置中偏移
@@ -137,6 +151,23 @@ onMounted(() => {
 })
 
 const getImage = (src: string): HTMLImageElement | undefined => {
+  // If src is a blob URL (custom asset), we might not have it in imageCache key
+  // But since it's a blob, we can try to return an image element created on the fly or check cache
+  // Simple strategy: If it starts with blob:, create/return a matching image element if not in cache?
+  // Actually, v-image handles `image` object.
+  // Let's rely on standard caching or just create a new Image if not found for caching simplicity?
+  // BETTER: Just let existing logic flow. If it's a blob, the Preloader might not have caught it if it changed dynamicallly.
+  
+  if (src.startsWith('blob:')) {
+    if (imageCache.value[src]) return imageCache.value[src]
+    
+    // Auto-load custom asset into cache if missing
+    const img = new Image()
+    img.src = src
+    imageCache.value[src] = img
+    return img
+  }
+
   // console.log(`Get: ${src}, InCache: ${!!imageCache.value[src]}`)
   return imageCache.value[src]
 }
