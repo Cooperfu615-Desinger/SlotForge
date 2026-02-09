@@ -97,9 +97,9 @@ if (reelController) {
 
 // Main Config with animated Y position and custom asset dimensions
 const config = computed(() => {
-  // CRITICAL: Use original custom asset dimensions if available (Visual Validation)
-  const width = customAsset.value ? customAsset.value.width : rect.value.w
-  const height = customAsset.value ? customAsset.value.height : rect.value.h
+  // CRITICAL: Always use the layout element's defined size (Auto-Fit Scaling)
+  const width = rect.value.w
+  const height = rect.value.h
   
   return {
     x: rect.value.x,
@@ -145,8 +145,8 @@ const handleClick = () => {
       v-if="isLoaded && image" 
       :config="{
         image: image,
-        width: customAsset ? customAsset.width : rect.w,
-        height: customAsset ? customAsset.height : rect.h
+        width: rect.w,
+        height: rect.h
       }"
     />
 

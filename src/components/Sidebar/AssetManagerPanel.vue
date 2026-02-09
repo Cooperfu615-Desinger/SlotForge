@@ -28,7 +28,64 @@ const assetBOM = computed(() => {
     }
   })
   
-  return Array.from(uniqueAssets.values())
+  // Force include required symbols
+  const requiredSymbols = [
+    'sym_scatter', 'sym_wild',
+    'sym_h1', 'sym_h2', 'sym_h3', 'sym_h4',
+    'sym_l1', 'sym_l2', 'sym_l3', 'sym_l4'
+  ]
+
+  // Helper to find a reference size for missing symbols
+  // Try to find any symbol's size, or default to 120x120
+  const getReferenceSize = () => {
+    for (const [_, asset] of uniqueAssets) {
+      if (asset.id.startsWith('sym_')) {
+        return { w: asset.specWidth, h: asset.specHeight }
+      }
+    }
+    return { w: 120, h: 120 }
+  }
+
+  const refSize = getReferenceSize()
+
+  requiredSymbols.forEach(symId => {
+    if (!uniqueAssets.has(symId)) {
+      uniqueAssets.set(symId, {
+        id: symId,
+        specWidth: refSize.w,
+        specHeight: refSize.h
+      })
+    }
+  })
+  
+  const bom = Array.from(uniqueAssets.values())
+
+  // Weighted Sort
+  // High Symbols: sym_h1 -> sym_h4
+  // Low Symbols: sym_l1 -> sym_l4
+  // Special: sym_scatter -> sym_wild
+  // Others: Alphabetical
+
+  const getSymbolRank = (id: string) => {
+    if (id.startsWith('sym_h')) return 1
+    if (id.startsWith('sym_l')) return 2
+    if (id === 'sym_scatter') return 3
+    if (id === 'sym_wild') return 4
+    return 5
+  }
+
+  return bom.sort((a, b) => {
+    const rankA = getSymbolRank(a.id)
+    const rankB = getSymbolRank(b.id)
+    
+    // Primary Sort: Rank
+    if (rankA !== rankB) {
+      return rankA - rankB
+    }
+
+    // Secondary Sort: ID (Alphabetical)
+    return a.id.localeCompare(b.id)
+  })
 })
 
 // Single file upload handler
@@ -111,7 +168,7 @@ const getSizeWarning = (assetId: string, specWidth: number, specHeight: number) 
   if (!customAsset) return null
   
   if (customAsset.width !== specWidth || customAsset.height !== specHeight) {
-    return `⚠️ 尺寸不符 (原圖: ${customAsset.width}x${customAsset.height})`
+    return `⚠️ 原圖 ${customAsset.width}x${customAsset.height} (將自動縮放)`
   }
   return null
 }
@@ -174,7 +231,7 @@ const getSizeWarning = (assetId: string, specWidth: number, specHeight: number) 
           <span class="font-semibold">建議尺寸:</span> {{ asset.specWidth }}×{{ asset.specHeight }}
           <div 
             v-if="getSizeWarning(asset.id, asset.specWidth, asset.specHeight)"
-            class="text-orange-600 font-semibold mt-1"
+            class="text-yellow-600 font-semibold mt-1"
           >
             ⚠️ {{ getSizeWarning(asset.id, asset.specWidth, asset.specHeight) }}
           </div>
