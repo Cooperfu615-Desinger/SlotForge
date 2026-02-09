@@ -135,15 +135,15 @@ const getSizeWarning = (assetId: string, specWidth: number, specHeight: number) 
           @change="handleBatchUpload"
           class="hidden"
         />
-        <div class="px-3 py-2 bg-blue-600 text-white text-sm font-semibold rounded hover:bg-blue-700 transition-colors text-center">
-          📦 Batch Upload
+        <div class="px-3 py-2 bg-white text-gray-700 border border-gray-300 text-sm font-semibold rounded hover:bg-gray-50 transition-colors text-center shadow-sm">
+          Batch Upload
         </div>
       </label>
       <button 
         @click="handleResetAll"
-        class="px-3 py-2 bg-red-600 text-white text-sm font-semibold rounded hover:bg-red-700 transition-colors"
+        class="px-3 py-2 bg-white text-gray-700 border border-gray-300 text-sm font-semibold rounded hover:bg-gray-50 transition-colors shadow-sm"
       >
-        🔄 Reset All
+        Reset All
       </button>
     </div>
 
@@ -152,17 +152,17 @@ const getSizeWarning = (assetId: string, specWidth: number, specHeight: number) 
       <div 
         v-for="asset in assetBOM" 
         :key="asset.id"
-        class="border border-gray-200 rounded-lg p-3 hover:border-cyan-300 transition-colors"
+        class="border border-gray-200 rounded-lg p-3 hover:border-gray-400 transition-colors"
       >
         <!-- Asset ID -->
         <div class="flex items-center justify-between mb-2">
           <span class="font-mono text-sm font-semibold text-gray-900">{{ asset.id }}</span>
           <span 
             :class="[
-              'text-xs px-2 py-0.5 rounded font-semibold',
+              'text-xs px-2 py-0.5 rounded font-semibold border',
               getAssetStatus(asset.id) === 'Custom' 
-                ? 'bg-green-100 text-green-700' 
-                : 'bg-gray-100 text-gray-500'
+                ? 'bg-gray-100 text-gray-900 border-gray-300' 
+                : 'bg-gray-50 text-gray-400 border-gray-200'
             ]"
           >
             {{ getAssetStatus(asset.id) }}
@@ -188,8 +188,8 @@ const getSizeWarning = (assetId: string, specWidth: number, specHeight: number) 
             @change="(e) => handleSingleUpload(asset.id, e)"
             class="hidden"
           />
-          <div class="px-3 py-1.5 bg-cyan-50 text-cyan-700 text-xs font-semibold rounded hover:bg-cyan-100 transition-colors text-center border border-cyan-200">
-            📁 Upload Replacement
+          <div class="px-3 py-1.5 bg-white text-gray-700 text-xs font-semibold rounded hover:bg-gray-50 transition-colors text-center border border-gray-300">
+            Upload Replacement
           </div>
         </label>
       </div>
@@ -203,9 +203,9 @@ const getSizeWarning = (assetId: string, specWidth: number, specHeight: number) 
     <div class="border-t border-gray-200">
       <button 
         @click="downloadScreenshot"
-        class="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"
+        class="w-full py-4 bg-gray-50 text-gray-700 font-semibold hover:bg-gray-100 transition-all border-t border-white"
       >
-        📸 Export Screenshot
+        Export Screenshot
       </button>
     </div>
   </div>
