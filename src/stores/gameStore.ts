@@ -68,6 +68,9 @@ export const useGameStore = defineStore('game', () => {
     // Sequencer / Inspector Mode Toggle
     const isSequencerEnabled = ref(false) // false = Inspector Mode, true = Play Mode
 
+    // Grid Overlay Toggle (Inspector Tool)
+    const showGrid = ref(false)
+
     // Speed Mode
     const currentSpeedMode = ref<SpeedMode>('normal')
     const currentPreset = computed(() => SPEED_PRESETS[currentSpeedMode.value])
@@ -99,6 +102,11 @@ export const useGameStore = defineStore('game', () => {
         currentLines.value = lines
     }
 
+    const toggleGrid = () => {
+        showGrid.value = !showGrid.value
+        console.log(`[GameStore] Grid overlay: ${showGrid.value ? 'ON' : 'OFF'}`)
+    }
+
     return {
         gameState,
         isSpinning,
@@ -110,6 +118,8 @@ export const useGameStore = defineStore('game', () => {
         currentLines,
         setLines,
         isSequencerEnabled,
+        showGrid,
+        toggleGrid,
     }
 })
 

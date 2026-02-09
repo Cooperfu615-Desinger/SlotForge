@@ -2,15 +2,15 @@
     "grid": {
         "rows": 6,
         "cols": 5,
-        "cell_w": 105,
-        "cell_h": 85,
+        "cell_w": 100,
+        "cell_h": 62,
         "gap": 4,
         "gap_x": 5,
         "gap_y": 4
     },
     "reel_area_rect": {
-        "x": 345,
-        "y": 105,
+        "x": 382,
+        "y": 140,
         "w": 590,
         "h": 530
     },

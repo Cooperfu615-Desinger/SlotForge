@@ -75,12 +75,14 @@ watch(() => gameStore.gameState, (newState) => {
   }
 })
 
-// 計算可見符號（7 個：3 可見 + 上下各 2 緩衝）
+// 計算可見符號（動態：visibleRows + 上下各 2 緩衝）
 const visibleSymbols = computed(() => {
   const offset = reelController.offsetY.value
   const currentIndex = Math.floor(offset / props.symbolHeight)
+  const bufferRows = 2
+  const totalSymbols = (props.visibleRows ?? 3) + (bufferRows * 2)
   
-  return Array.from({ length: 7 }, (_, i) => {
+  return Array.from({ length: totalSymbols }, (_, i) => {
     const stripIndex = currentIndex + i - 2  // 從上方 2 個開始
     const symbolId = getSymbolAt(stripIndex)
     const assetPath = getSymbolAsset(symbolId)

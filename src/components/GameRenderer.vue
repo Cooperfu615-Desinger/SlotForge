@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useManifestStore } from '../stores/manifest'
+import { useGameStore } from '../stores/gameStore'
 import GameElement from './GameElement.vue'
 import ReelArea from './ReelArea.vue'
+import GridOverlay from './GridOverlay.vue'
 
 const store = useManifestStore()
+const gameStore = useGameStore()
 
 // Fixed Logical Resolution
 const STAGE_CONFIG = {
@@ -38,5 +41,8 @@ const nonSymbolElements = computed(() => {
       <!-- Reel Area (New: 5 Reels with Clipping Mask) -->
       <ReelArea />
     </v-layer>
+    
+    <!-- Grid Overlay (Top Layer - Inspector Tool) -->
+    <GridOverlay v-if="gameStore.showGrid" />
   </v-stage>
 </template>

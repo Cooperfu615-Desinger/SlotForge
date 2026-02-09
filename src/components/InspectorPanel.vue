@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useManifestStore } from '../stores/manifest'
+import { useGameStore } from '../stores/gameStore'
 
 const store = useManifestStore()
+const gameStore = useGameStore()
 
 const selectedElement = computed(() => {
   if (!store.selectedElementId) return null
@@ -17,6 +19,21 @@ const selectedElement = computed(() => {
     <div class="p-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
       <span class="font-bold text-gray-700">Inspector</span>
       <span v-if="selectedElement" class="text-xs bg-cyan-100 text-cyan-700 px-2 py-0.5 rounded">Selected</span>
+    </div>
+
+    <!-- Grid Overlay Toggle -->
+    <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+      <div class="flex items-center justify-between">
+        <label class="text-sm text-gray-700 flex items-center gap-2 cursor-pointer">
+          <span>顯示網格</span>
+          <span class="text-xs text-gray-400">(20×20px)</span>
+        </label>
+        <input 
+          type="checkbox" 
+          v-model="gameStore.showGrid"
+          class="w-4 h-4 text-cyan-600 rounded focus:ring-2 focus:ring-cyan-500 cursor-pointer"
+        />
+      </div>
     </div>
 
     <!-- Content -->
