@@ -1,8 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import template3x3 from '../assets/templates/template_3x3.json'
-import template3x5 from '../assets/templates/template_3x5.json'
-import template4x5 from '../assets/templates/template_4x5.json'
+import tplClassic3x3 from '../assets/templates/tpl_classic_3x3.json'
+import tplStandard3x5 from '../assets/templates/tpl_standard_3x5.json'
+import tplWay3x5 from '../assets/templates/tpl_way_3x5.json'
+import tplExtended4x5 from '../assets/templates/tpl_extended_4x5.json'
+import tplPayAnywhere6x5 from '../assets/templates/tpl_pay_anywhere_6x5.json'
+import tplCluster7x7 from '../assets/templates/tpl_cluster_7x7.json'
+import tplMegaways6 from '../assets/templates/tpl_megaways_6.json'
 
 export interface Rect { x: number; y: number; w: number; h: number; }
 
@@ -46,13 +50,17 @@ interface TemplateConfig {
 }
 
 const TEMPLATES: Record<string, TemplateConfig> = {
-    '3x3': template3x3,
-    '3x5': template3x5,
-    '4x5': template4x5
+    'classic_3x3': tplClassic3x3,
+    'standard_3x5': tplStandard3x5,
+    'way_3x5': tplWay3x5,
+    'extended_4x5': tplExtended4x5,
+    'pay_anywhere_6x5': tplPayAnywhere6x5,
+    'cluster_7x7': tplCluster7x7,
+    'megaways_6': tplMegaways6
 }
 
 // Default used for type safety or fallback
-const DEFAULT_CONFIG = template3x5
+const DEFAULT_CONFIG = tplStandard3x5
 
 // --------------------------------------------------------
 // Store Definition
@@ -61,7 +69,7 @@ const DEFAULT_CONFIG = template3x5
 export const useManifestStore = defineStore('manifest', () => {
 
     const selectedElementId = ref<string | null>(null)
-    const currentGrid = ref<string>('3x5') // Default
+    const currentGrid = ref<string>('standard_3x5') // Default
 
     // Reactive Grid Configuration
     const gridConfig = computed<TemplateConfig['grid']>(() => {

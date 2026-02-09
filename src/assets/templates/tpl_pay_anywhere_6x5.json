@@ -1,0 +1,29 @@
+{
+    "grid": {
+        "rows": 6,
+        "cols": 5,
+        "cell_w": 105,
+        "cell_h": 85,
+        "gap": 4,
+        "gap_x": 5,
+        "gap_y": 4
+    },
+    "reel_area_rect": {
+        "x": 345,
+        "y": 105,
+        "w": 590,
+        "h": 530
+    },
+    "clipping_rect": {
+        "x": 330,
+        "y": 95,
+        "w": 620,
+        "h": 550
+    },
+    "panel_reels_rect": {
+        "x": 310,
+        "y": 85,
+        "w": 660,
+        "h": 570
+    }
+}
