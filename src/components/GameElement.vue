@@ -3,6 +3,7 @@ import { computed, ref, watchEffect, watch } from 'vue'
 import type { LayoutElement } from '../stores/manifest'
 import { useManifestStore } from '../stores/manifest'
 import { useGameStore } from '../stores/gameStore'
+import { useForgeStore } from '../stores/forgeStore'
 import { useReelController } from '../composables/useReelController'
 
 const props = defineProps<{
@@ -11,9 +12,23 @@ const props = defineProps<{
 
 const store = useManifestStore()
 const gameStore = useGameStore()
+const forgeStore = useForgeStore()
 const image = ref<HTMLImageElement | null>(null)
 const isLoaded = ref(false)
 const isError = ref(false)
+
+// Extract asset ID from asset_src path
+const assetId = computed(() => {
+  if (!props.element.asset_src) return null
+  const match = props.element.asset_src.match(/\/([^\/]+)\.(png|jpg|jpeg|webp|svg)$/i)
+  return match?.[1] || null
+})
+
+// Check if custom asset exists
+const customAsset = computed(() => {
+  if (!assetId.value) return null
+  return forgeStore.getAsset(assetId.value)
+})
 
 // Determine if this element is selected
 const isSelected = computed(() => store.selectedElementId === props.element.id)
@@ -22,7 +37,8 @@ const isSelected = computed(() => store.selectedElementId === props.element.id)
 const rect = computed(() => props.element.rect_landscape)
 
 watchEffect(() => {
-  const src = props.element.asset_src
+  // Priority: custom asset > default asset_src
+  const src = customAsset.value?.url || props.element.asset_src
   if (!src) {
     isLoaded.value = false
     isError.value = true
@@ -79,18 +95,24 @@ if (reelController) {
   })
 }
 
-// Main Config with animated Y position
-const config = computed(() => ({
-  x: rect.value.x,
-  y: rect.value.y + (reelController?.offsetY.value || 0),  // Apply animation offset
-  width: rect.value.w,
-  height: rect.value.h,
-  listening: props.element.listening ?? true,
+// Main Config with animated Y position and custom asset dimensions
+const config = computed(() => {
+  // CRITICAL: Use original custom asset dimensions if available (Visual Validation)
+  const width = customAsset.value ? customAsset.value.width : rect.value.w
+  const height = customAsset.value ? customAsset.value.height : rect.value.h
   
-  // Center Anchor Logic for Buttons
-  offsetX: props.element.anchor === 'center' ? rect.value.w / 2 : 0,
-  offsetY: props.element.anchor === 'center' ? rect.value.h / 2 : 0,
-}))
+  return {
+    x: rect.value.x,
+    y: rect.value.y + (reelController?.offsetY.value || 0),  // Apply animation offset
+    width: width,
+    height: height,
+    listening: props.element.listening ?? true,
+    
+    // Center Anchor Logic for Buttons
+    offsetX: props.element.anchor === 'center' ? width / 2 : 0,
+    offsetY: props.element.anchor === 'center' ? height / 2 : 0,
+  }
+})
 
 const handleClick = () => {
   if (props.element.listening !== false) {
@@ -118,13 +140,13 @@ const handleClick = () => {
 <template>
   <v-group :config="config" @click="handleClick" @tap="handleClick">
     
-    <!-- Success: Render Image -->
+    <!-- Success: Render Image with custom asset dimensions -->
     <v-image 
       v-if="isLoaded && image" 
       :config="{
         image: image,
-        width: rect.w,
-        height: rect.h
+        width: customAsset ? customAsset.width : rect.w,
+        height: customAsset ? customAsset.height : rect.h
       }"
     />
 

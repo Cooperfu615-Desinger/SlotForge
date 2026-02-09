@@ -15,11 +15,6 @@ const selectedElement = computed(() => {
 
 <template>
   <div class="h-full flex flex-col bg-white">
-    <!-- Header -->
-    <div class="p-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
-      <span class="font-bold text-gray-700">Inspector</span>
-      <span v-if="selectedElement" class="text-xs bg-cyan-100 text-cyan-700 px-2 py-0.5 rounded">Selected</span>
-    </div>
 
     <!-- Grid Overlay Toggle -->
     <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
