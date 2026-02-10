@@ -8,6 +8,7 @@ import TopNavBar from './components/TopNavBar.vue'
 import DraggableWindow from './components/UI/DraggableWindow.vue'
 import SequencerPanel from './components/Sequencer/SequencerPanel.vue'
 import ZoomSlider from './components/UI/ZoomSlider.vue' // Import ZoomSlider
+import WinPresentationLayer from './components/Overlays/WinPresentationLayer.vue'
 
 const lightTheme: GlobalThemeOverrides = {
   common: {
@@ -22,7 +23,7 @@ const previewScale = ref(1.0)
 // Initial Positions (Calculated once on setup)
 const inspectorInitialX = window.innerWidth - 340
 const templateInitialX = 20
-const sequencerInitialX = window.innerWidth / 2 - 400
+const sequencerInitialX = window.innerWidth / 2 - 550
 const sequencerInitialY = window.innerHeight - 300
 
 // Z-Index Management
@@ -87,7 +88,6 @@ const stopPanning = () => {
         <!-- Zoom Slider (Fixed Left) -->
         <ZoomSlider v-model="previewScale" />
 
-        <!-- Game Preview (Centered & Scaled) -->
         <DeviceContainer
             :style="{ 
                 transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${previewScale})`, 
@@ -96,6 +96,7 @@ const stopPanning = () => {
             }"
         >
             <GameRenderer />
+            <WinPresentationLayer />
         </DeviceContainer>
 
         <!-- Floating Windows Layer -->
@@ -131,7 +132,7 @@ const stopPanning = () => {
             title="Director Console" 
             :initialX="sequencerInitialX" 
             :initialY="sequencerInitialY" 
-            width="800px"
+            width="1100px"
             :zIndex="zIndices.sequencer"
             @focus="bringToFront('sequencer')"
         >

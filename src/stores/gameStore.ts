@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
 export type GameState = 'IDLE' | 'SPINNING' | 'STOPPING' | 'STOPPED'
+export type WinState = 'IDLE' | 'ROLLUP' | 'COMPLETED'
 export type SpeedMode = 'fast' | 'normal' | 'slow' | 'instant'
 
 export interface SpeedPreset {
@@ -93,6 +94,13 @@ export const useGameStore = defineStore('game', () => {
     // Lines / Template
     const currentLines = ref<number>(25)
 
+    // Win Demo State
+    const winDuration = ref(2000)
+    const currentWinAmount = ref(0)
+    const targetWinAmount = ref(0)
+    const winState = ref<WinState>('IDLE')
+    let winTweenRequest: number | null = null
+
     // Actions
     const startSpin = () => {
         if (gameState.value !== 'IDLE') {
@@ -138,6 +146,55 @@ export const useGameStore = defineStore('game', () => {
         console.log(`[GameStore] Grid overlay: ${showGrid.value ? 'ON' : 'OFF'}`)
     }
 
+    // Win Demo Actions
+    const triggerWin = (amount: number) => {
+        if (winState.value !== 'IDLE') {
+            // Cancel existing
+            if (winTweenRequest) cancelAnimationFrame(winTweenRequest)
+        }
+
+        console.log(`[GameStore] Trigger Win: ${amount}`)
+        targetWinAmount.value = amount
+        currentWinAmount.value = 0
+        winState.value = 'ROLLUP'
+
+        const startTime = performance.now()
+        const startVal = 0
+        const endVal = amount
+        const duration = winDuration.value
+
+        const animate = (currentTime: number) => {
+            const elapsed = currentTime - startTime
+            const progress = Math.min(elapsed / duration, 1)
+
+            // Ease Out Quart
+            const ease = 1 - Math.pow(1 - progress, 4)
+
+            currentWinAmount.value = Math.floor(startVal + (endVal - startVal) * ease)
+
+            if (progress < 1) {
+                winTweenRequest = requestAnimationFrame(animate)
+            } else {
+                currentWinAmount.value = endVal
+                winState.value = 'COMPLETED'
+                winTweenRequest = null
+            }
+        }
+
+        winTweenRequest = requestAnimationFrame(animate)
+    }
+
+    const killWinAnimation = () => {
+        if (winState.value === 'ROLLUP') {
+            if (winTweenRequest) cancelAnimationFrame(winTweenRequest)
+            currentWinAmount.value = targetWinAmount.value
+            winState.value = 'COMPLETED'
+        } else if (winState.value === 'COMPLETED') {
+            winState.value = 'IDLE'
+            currentWinAmount.value = 0
+        }
+    }
+
     return {
         gameState,
         isSpinning,
@@ -154,5 +211,11 @@ export const useGameStore = defineStore('game', () => {
         isSequencerEnabled,
         showGrid,
         toggleGrid,
+        winDuration,
+        currentWinAmount,
+        targetWinAmount,
+        winState,
+        triggerWin,
+        killWinAnimation
     }
 })

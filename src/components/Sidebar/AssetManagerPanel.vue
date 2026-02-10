@@ -57,6 +57,18 @@ const assetBOM = computed(() => {
       })
     }
   })
+
+  // Force include Win Assets
+  const winAssets = ['win_small', 'win_big', 'win_mega', 'win_super', 'win_epic']
+  winAssets.forEach(winId => {
+    if (!uniqueAssets.has(winId)) {
+      uniqueAssets.set(winId, {
+        id: winId,
+        specWidth: 600, // Default spec size for win images
+        specHeight: 300
+      })
+    }
+  })
   
   const bom = Array.from(uniqueAssets.values())
 
@@ -71,6 +83,7 @@ const assetBOM = computed(() => {
     if (id.startsWith('sym_l')) return 2
     if (id === 'sym_scatter') return 3
     if (id === 'sym_wild') return 4
+    if (id.startsWith('win_')) return 0 // Win assets at top
     return 5
   }
 

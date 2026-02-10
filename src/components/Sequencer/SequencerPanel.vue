@@ -18,8 +18,20 @@ const handleMainButton = () => {
   }
 }
 
+const triggerWin = (amount: number) => {
+  gameStore.triggerWin(amount)
+}
+
 const triggerAction = (actionName: string) => {
   console.log(`Trigger: [${actionName}]`)
+}
+
+// Duration Binding
+const updateWinDuration = (e: Event) => {
+  const val = parseFloat((e.target as HTMLInputElement).value)
+  if (!isNaN(val)) {
+    gameStore.winDuration = val * 1000 // Convert to ms
+  }
 }
 
 // --- Timeline Data ---
@@ -57,8 +69,23 @@ defineProps<{
         <div class="tool-group">
             <div class="group-label">WIN DEMO</div>
             <div class="btn-row">
-                <button class="btn" @click="triggerAction('Small Win')">Small</button>
-                <button class="btn" @click="triggerAction('Big Win')">Big Win</button>
+                <button class="btn" @click="triggerWin(150)">Small</button>
+                <button class="btn" @click="triggerWin(5000)">Big</button>
+                <button class="btn" @click="triggerWin(20000)">Mega</button>
+                <button class="btn" @click="triggerWin(50000)">Super</button>
+                <button class="btn" @click="triggerWin(100000)">Epic</button>
+            </div>
+            <!-- Duration Setting -->
+            <div class="flex items-center gap-2 mt-1 px-1">
+                <span class="text-[10px] text-gray-400 font-bold">DUR:</span>
+                <input 
+                  type="number" 
+                  step="0.1" 
+                  :value="gameStore.winDuration / 1000" 
+                  @input="updateWinDuration"
+                  class="w-12 h-6 text-xs text-center border border-gray-200 rounded"
+                />
+                <span class="text-[10px] text-gray-400">s</span>
             </div>
         </div>
 
@@ -102,6 +129,8 @@ defineProps<{
     align-items: center;
     padding: 0 16px;
     gap: 20px;
+    white-space: nowrap;
+    overflow-x: auto; /* Handle smaller screens gracefully */
 }
 
 .tool-group {
