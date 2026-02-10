@@ -4,14 +4,25 @@ import InspectorPanel from './InspectorPanel.vue'
 import AssetManagerPanel from './AssetManagerPanel.vue'
 import GuidePanel from './GuidePanel.vue'
 
-type Tab = 'inspector' | 'assets' | 'guide'
-const activeTab = ref<Tab>('inspector')
+type Tab = 'guide' | 'inspector' | 'assets'
+const activeTab = ref<Tab>('guide')
 </script>
 
 <template>
   <div class="h-full flex flex-col">
     <!-- Tab Navigation -->
     <div class="flex border-b border-gray-200 bg-gray-50">
+      <button 
+        @click="activeTab = 'guide'"
+        :class="[
+          'flex-1 py-3 text-sm font-semibold transition-colors',
+          activeTab === 'guide' 
+            ? 'text-cyan-600 border-b-2 border-cyan-600 bg-white' 
+            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+        ]"
+      >
+        說明
+      </button>
       <button 
         @click="activeTab = 'inspector'"
         :class="[
@@ -35,24 +46,13 @@ const activeTab = ref<Tab>('inspector')
         素材
       
       </button>
-      <button 
-        @click="activeTab = 'guide'"
-        :class="[
-          'flex-1 py-3 text-sm font-semibold transition-colors',
-          activeTab === 'guide' 
-            ? 'text-cyan-600 border-b-2 border-cyan-600 bg-white' 
-            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-        ]"
-      >
-        說明
-      </button>
     </div>
 
     <!-- Panel Content -->
     <div class="flex-1 overflow-hidden">
-      <InspectorPanel v-if="activeTab === 'inspector'" />
+      <GuidePanel v-if="activeTab === 'guide'" />
+      <InspectorPanel v-else-if="activeTab === 'inspector'" />
       <AssetManagerPanel v-else-if="activeTab === 'assets'" />
-      <GuidePanel v-else-if="activeTab === 'guide'" />
     </div>
   </div>
 </template>
