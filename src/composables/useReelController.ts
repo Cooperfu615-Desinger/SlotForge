@@ -1,125 +1,185 @@
 import gsap from 'gsap'
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
 import type { SpeedPreset } from '../stores/gameStore'
 
 export interface ReelConfig {
-    reelId: number           // 0-4 (for 5 reels)
-    symbolHeight: number     // Height of each symbol (e.g., 125px)
+    reelId: number
+    symbolHeight: number
 }
 
+export type ReelStatus = 'IDLE' | 'ACCELERATING' | 'SPINNING' | 'STOPPING' | 'COMPLETED'
+
 /**
- * 4-Phase Reel Animation Controller
+ * Physics-based Reel Controller
  * 
- * Phase 1: Spin - 高速線性滾動
- * Phase 2: Decelerate - 減速
- * Phase 3: Align - 對齊格線
- * Phase 4: Settle - 選配微彈
+ * Uses a velocity-based approach driven by gsap.ticker for continuous simulation.
+ * Position increases monotonically effectively representing "distance traveled down".
  */
 export const useReelController = (config: ReelConfig, onAllReelsStopped?: () => void) => {
-    // Current Y offset for this reel (累積位移量)
-    const offsetY = ref(0)
+    const status = ref<ReelStatus>('IDLE')
 
-    // GSAP Timeline instance
-    let timeline: gsap.core.Timeline | null = null
+    // Physics State
+    // position: Total pixels traveled (Logic: Moving Down)
+    // speed: Pixels per second
+    const position = ref(0)
+    const speed = ref(0)
+
+    // Animation Handles
+    let activePreset: SpeedPreset | null = null
+    let speedTween: gsap.core.Tween | null = null
+    let positionTween: gsap.core.Tween | null = null
+
+    // Constants
+    const MAX_SPEED = 2500 // px/sec target speed for normal spin
+
+    // Ticker Loop for Physics
+    const updatePhysics = (_time: number, deltaTime: number) => {
+        // DeltaTime is in ms
+        if (status.value === 'ACCELERATING' || status.value === 'SPINNING') {
+            // distance = speed * (delta / 1000)
+            position.value += speed.value * (deltaTime / 1000)
+        }
+    }
+
+    // Bind Ticker
+    gsap.ticker.add(updatePhysics)
+
+    onUnmounted(() => {
+        gsap.ticker.remove(updatePhysics)
+        killTweens()
+    })
+
+    const killTweens = () => {
+        if (speedTween) {
+            speedTween.kill()
+            speedTween = null
+        }
+        if (positionTween) {
+            positionTween.kill()
+            positionTween = null
+        }
+    }
 
     /**
-     * Start the 4-phase reel spin animation
+     * Start Spin
      */
     const spin = (preset: SpeedPreset) => {
-        if (timeline) {
-            timeline.kill()
+        killTweens()
+        status.value = 'ACCELERATING'
+        activePreset = preset
+
+        // Only use instant snap if duration is strictly 0
+        const isInstant = preset.spinDuration === 0
+
+        if (isInstant) {
+            instantStop()
+            return
         }
 
-        const stopDelay = config.reelId * preset.intervalBetweenReels
+        // Calculate Delay
+        const delay = (config.reelId * (preset.intervalBetweenReels || 200)) / 1000
 
-        timeline = gsap.timeline()
-
-        // ═══════════════════════════════════════════════════════════
-        // Phase 1: Spin (高速線性滾動)
-        // ═══════════════════════════════════════════════════════════
-        timeline.to(offsetY, {
-            value: `+=${config.symbolHeight * preset.spinSymbolCount}`,
-            duration: preset.spinDuration / 1000,
-            ease: 'linear'
-        })
-
-        // ═══════════════════════════════════════════════════════════
-        // Phase 2: Decelerate (減速)
-        // ═══════════════════════════════════════════════════════════
-        timeline.to(offsetY, {
-            value: `+=${config.symbolHeight * preset.decelerateSymbolCount}`,
-            duration: preset.decelerateDuration / 1000,
-            ease: 'power2.out'  // 平滑減速
-        })
-
-        // ═══════════════════════════════════════════════════════════
-        // Phase 3: Align (對齊格線) - 依序停止
-        // ═══════════════════════════════════════════════════════════
-        timeline.to(offsetY, {
-            value: () => {
-                const current = offsetY.value
-                // 找到下一個對齊點
-                const aligned = Math.ceil(current / config.symbolHeight) * config.symbolHeight
-                // 加上過衝量
-                return aligned + config.symbolHeight * preset.overshootSymbols
+        // Accelerate
+        // Use a fraction of spinDuration or fixed 0.5s.
+        // For Turbo (500ms), 0.5s is exactly the whole duration, which is fine.
+        speedTween = gsap.to(speed, {
+            value: MAX_SPEED,
+            duration: 0.5,
+            delay: delay,
+            ease: 'power1.in',
+            onStart: () => {
+                // status handles
             },
-            duration: preset.alignDuration / 1000,
-            delay: stopDelay / 1000,  // 依序停止的延遲
-            ease: 'power3.out'
+            onComplete: () => {
+                status.value = 'SPINNING'
+            }
         })
-
-        // ═══════════════════════════════════════════════════════════
-        // Phase 4: Settle (選配微彈)
-        // ═══════════════════════════════════════════════════════════
-        if (preset.bounceStrength > 0 && preset.overshootSymbols > 0) {
-            timeline.to(offsetY, {
-                value: () => {
-                    const current = offsetY.value
-                    return Math.round(current / config.symbolHeight) * config.symbolHeight
-                },
-                duration: preset.settleDuration / 1000,
-                ease: `back.out(${preset.bounceStrength})`,
-                onComplete: () => {
-                    console.log(`[Reel ${config.reelId}] Stopped at offsetY: ${Math.floor(offsetY.value)}`)
-                    if (onAllReelsStopped) {
-                        onAllReelsStopped()
-                    }
-                }
-            })
-        } else {
-            // 無回彈時，Phase 3 完成後直接回調
-            timeline.call(() => {
-                console.log(`[Reel ${config.reelId}] Stopped at offsetY: ${Math.floor(offsetY.value)}`)
-                if (onAllReelsStopped) {
-                    onAllReelsStopped()
-                }
-            })
-        }
     }
 
     /**
-     * Force stop the reel animation
+     * Stop at alignments
      */
     const stop = () => {
-        if (timeline) {
-            timeline.kill()
-            timeline = null
+        if (status.value === 'IDLE' || status.value === 'COMPLETED' || status.value === 'STOPPING') return
+
+        status.value = 'STOPPING'
+
+        // Important: kill speed tween so we don't keep accelerating if we called stop early.
+        if (speedTween) {
+            speedTween.kill()
+            speedTween = null
         }
+
+        // Calculate Target Position
+        // Land on a multiple of H
+        // position is increasing via ticker.
+        const currentPos = position.value
+        const h = config.symbolHeight
+
+        // Ensure we roll at least a bit more so we don't snap back instant if we just passed a line.
+        const SAFETY_DISTANCE = h * 3
+        const rawTarget = currentPos + SAFETY_DISTANCE
+        const targetPosition = Math.ceil(rawTarget / h) * h
+
+        // Decelerate & Snap
+        // We use GSAP to tween 'position' to target.
+        // We must ensure 'updatePhysics' doesn't conflict. 
+        // updatePhysics checks for ACCELERATING/SPINNING logic only updates position if so.
+        // STOPPING state means ticker ignores position.
+
+        // Determine Duration
+        // Use preset.spinDuration if available (convert ms to s), else default 2.0
+        const stopDuration = activePreset && activePreset.spinDuration > 0
+            ? activePreset.spinDuration / 1000
+            : 2.0
+
+        positionTween = gsap.to(position, {
+            value: targetPosition,
+            duration: stopDuration,
+            ease: 'back.out(0.6)',
+            onComplete: () => {
+                status.value = 'COMPLETED'
+                speed.value = 0
+                position.value = targetPosition
+                console.log(`[Reel ${config.reelId}] Stopped at ${targetPosition}`)
+                onAllReelsStopped?.()
+            }
+        })
     }
 
     /**
-     * Reset offset to 0
+     * Instant Stop
+     */
+    const instantStop = () => {
+        killTweens()
+
+        const h = config.symbolHeight
+        const target = Math.ceil(position.value / h) * h
+
+        position.value = target
+        speed.value = 0
+        status.value = 'COMPLETED'
+
+        onAllReelsStopped?.()
+    }
+
+    /**
+     * Reset
      */
     const reset = () => {
-        stop()
-        offsetY.value = 0
+        killTweens()
+        status.value = 'IDLE'
+        position.value = 0
+        speed.value = 0
     }
 
     return {
-        offsetY,
+        status,
+        position,
+        speed,
         spin,
         stop,
+        instantStop,
         reset
     }
 }
-

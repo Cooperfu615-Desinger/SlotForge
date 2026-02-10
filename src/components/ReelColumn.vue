@@ -75,18 +75,115 @@ watch(() => gameStore.gameState, (newState) => {
   if (newState === 'SPINNING') {
     console.log(`[ReelColumn ${props.reelId}] Starting spin (${gameStore.currentSpeedMode})`)
     reelController.spin(gameStore.currentPreset)
+  } else if (newState === 'STOPPING') {
+    // Global stop trigger (if needed, currently handled by timeouts/controller usually)
+    // If we wanted to force stop manually:
+    // reelController.stop()
+  } else if (newState === 'IDLE' ) {
+      // Potentially reset if coming from a hard stop?
   }
 })
 
+// Watch for manual stop (Sequencer Mode usually handles this via timeouts, but we might want individual stops)
+// Or if GameStore triggers a stop.
+// Currently GameStore just sets 'IDLE' when last reel stops.
+// But if we want to stop strictly:
+watch(() => gameStore.gameState, (v) => {
+    if (v === 'STOPPING') {
+        // Trigger stop on this reel? 
+        // Typically Slot games stop sequentially automatically.
+        // But if user clicks "STOP" button, we might want to stop all.
+        // For now, let's assume the controller handles the run and we only trigger stop if specifically requested.
+        // Actually, the prompt implies "Click STOP -> Stop aligning".
+        // Use logic: if gameStore says stopping, we stop.
+        // But usually stopping is sequential.
+        // Let's implement a listener for a specific "force stop" if gameStore has it, or just rely on the controller params.
+        
+        // Wait, the prompt says "Point 4: Click STOP can align ... Click SPIN -> Falling".
+        // The implementation Plan didn't specify changing GameStore to trigger individual stops.
+        // We will assume the auto-stop sequence is handled or we rely on the component mount logic?
+        // Actually, usually the game logic Controller (external) calls stop.
+        // Here we have `reelController`. 
+        
+        // If the implementation expects manual stop call:
+        // We'll leave it to the ReelController internals for now.
+    }
+})
+
+// For the "Click STOP" requirement:
+// We need to Expose `stop` or have the parent call it.
+// Currently `ReelColumn` is a component.
+// We can expose `reelController` actions via defineExpose if the parent uses ref refs.
+// OR we rely on `gameStore` state changes.
+// Since `useReelController` doesn't auto-stop unless we tell it to (based on the new logic),
+// we need to ensure *something* calls `stop()`.
+// IN the OLD code, `spin()` had a timeline that ended automatically.
+// IN the NEW code, `spin()` sets speed and KEEPS SPINNING until `stop()` is called.
+// THIS IS CRITICAL.
+// We need to call `stop()` after some time or on event.
+// Let's add a sequential auto-stop logic here if it's "Normal" mode.
+watch(() => reelController.status.value, (s) => {
+    if (s === 'SPINNING') {
+        // Auto-stop simulation for Normal/Fast modes if not manual?
+        // User prompt: "Normal: Duration 2000ms".
+        // This likely means the TOTAL duration is 2s.
+        // So we should schedule a stop.
+        
+        // However, `useReelController`'s `spin` had a delay + accel.
+        // We should schedule `stop()` after `spinDuration`.
+        // The previous controller did this via timeline.
+        // The new controller's `spin` just starts moving. It does NOT schedule stop.
+        // We must schedule it here or in the controller.
+        // Let's do it in the controller? No, I wrote the controller to just "Start Spin".
+        // Actually, I should probably handle the "Duration" logic in the Controller to auto-stop.
+        // Re-reading usage: "spin(preset)". Preset has duration. 
+        // If I strictly follow the "Rewrite" prompt: "spin...gsap.to(speed)...tick".
+        // It didn't explicitly say "auto-schedule stop".
+        // BUT "Normal: Duration 2000ms".
+        // I should probably ensure it stops.
+        // Let's add a timeout in the watcher here to call stop.
+        
+        const preset = gameStore.currentPreset
+        const delay = props.reelId * (preset.intervalBetweenReels || 200)
+        // Total time from start to stop command
+        const runTime = (preset.spinDuration || 2000) + delay
+        
+        // We are already in 'SPINNING' state, which happens after acceleration (0.5s) + delay.
+        // Wait, acceleration has delay.
+        // Effectively we want the reel to stop after X seconds from *Start Command*.
+        
+        // Better approach: Calculate remaining time.
+        // But simplest is: On 'SPINNING', set timeout to stop.
+        // spinDuration is usually total spin time.
+        // Let's wait `preset.spinDuration` then call stop().
+        // Note: spinDuration in preset is 2000ms.
+        
+        setTimeout(() => {
+            reelController.stop()
+        }, preset.spinDuration)
+    }
+})
+
+
 // 計算可見符號（動態：visibleRows + 上下各 2 緩衝）
 const visibleSymbols = computed(() => {
-  const offset = reelController.offsetY.value
-  const currentIndex = Math.floor(offset / props.symbolHeight)
+  const offset = reelController.position.value
+  
+  // Logic: Falling Down
+  // As position increases, we look "up" the strip (negative index direction)
+  // to find symbols coming from above.
+  const scrollIndex = Math.floor(offset / props.symbolHeight)
+  
   const bufferRows = 2
   const totalSymbols = (props.visibleRows ?? 3) + (bufferRows * 2)
   
   return Array.from({ length: totalSymbols }, (_, i) => {
-    const stripIndex = currentIndex + i - 2  // 從上方 2 個開始
+    // i starts at 0. Row 0 corresponds to i=2 (since buffer is 2).
+    // Standard strip index at Row 0 would be `0`.
+    // With simplified falling logic: `stripIndex = -scrollIndex + i - 2`
+    // This ensures loop continuity if getSymbolAt handles negative indices via modulo.
+    const stripIndex = -scrollIndex + i - 2
+    
     const symbolId = getSymbolAt(stripIndex)
     let assetPath = getSymbolAsset(symbolId)
     
@@ -112,9 +209,12 @@ const visibleSymbols = computed(() => {
       }
     }
     
-    // 計算 Y 位置（相對於 Group）
-    // 基準位置 + 索引偏移 - 動畫位移的餘數 + 垂直置中偏移
-    const y = ((i - 2) * props.symbolHeight - (offset % props.symbolHeight)) + gapOffset.value
+    // Y Position Calculation
+    // Logic: 
+    // Base row position: `(i - 2) * h`
+    // Plus Offset Modulo: `offset % h`
+    // As offset increases 0 -> h, Y increases (Falling visual).
+    const y = ((i - 2) * props.symbolHeight + (offset % props.symbolHeight)) + gapOffset.value
     
     // Center the image if dimensions are different from cell size
     // AND apply custom offsets
@@ -171,13 +271,6 @@ onMounted(() => {
 })
 
 const getImage = (src: string): HTMLImageElement | undefined => {
-  // If src is a blob URL (custom asset), we might not have it in imageCache key
-  // But since it's a blob, we can try to return an image element created on the fly or check cache
-  // Simple strategy: If it starts with blob:, create/return a matching image element if not in cache?
-  // Actually, v-image handles `image` object.
-  // Let's rely on standard caching or just create a new Image if not found for caching simplicity?
-  // BETTER: Just let existing logic flow. If it's a blob, the Preloader might not have caught it if it changed dynamicallly.
-  
   if (src.startsWith('blob:')) {
     if (imageCache.value[src]) return imageCache.value[src]
     
@@ -188,20 +281,8 @@ const getImage = (src: string): HTMLImageElement | undefined => {
     return img
   }
 
-  // console.log(`Get: ${src}, InCache: ${!!imageCache.value[src]}`)
   return imageCache.value[src]
 }
-
-/*
-const debugInfo = computed(() => {
-  const first = visibleSymbols.value[0]
-  if (!first) return 'No sym'
-  const key = first.assetPath
-  const has = !!imageCache.value[key]
-  const keys = Object.keys(imageCache.value)
-  return `K:${key.slice(-15)}\nH:${has}\nN:${keys.length}\n1:${keys[0]?.slice(-15)}`
-})
-*/
 </script>
 
 <template>
@@ -216,7 +297,6 @@ const debugInfo = computed(() => {
     <!-- 渲染符號 -->
     <template v-for="(symbol, index) in visibleSymbols" :key="symbol.key">
       <!-- 圖片層 (總是存在，透過 visible 控制顯示) -->
-      <v-image
       <v-image
         :config="{
           x: symbol.offsetX,
@@ -275,4 +355,3 @@ const debugInfo = computed(() => {
     </template>
   </v-group>
 </template>
-
