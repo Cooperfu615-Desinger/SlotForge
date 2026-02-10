@@ -27,14 +27,46 @@ const sequencerInitialY = window.innerHeight - 300
 
 // Z-Index Management
 const zIndices = ref({
-    templates: 40,
-    inspector: 40,
-    sequencer: 40
+    templates: 50,
+    inspector: 50,
+    sequencer: 50
 })
 
 const bringToFront = (key: 'templates' | 'inspector' | 'sequencer') => {
     const maxZ = Math.max(zIndices.value.templates, zIndices.value.inspector, zIndices.value.sequencer)
     zIndices.value[key] = maxZ + 1
+}
+
+// Canvas Panning State
+const isPanning = ref(false)
+const panOffset = ref({ x: 0, y: 0 })
+const dragStart = ref({ x: 0, y: 0 })
+
+const handleMouseDown = (e: MouseEvent) => {
+    // Check if target is interactive (window or slider)
+    const target = e.target as HTMLElement
+    if (target.closest('.draggable-window') || target.closest('.zoom-slider')) {
+        return
+    }
+
+    isPanning.value = true
+    dragStart.value = { 
+        x: e.clientX - panOffset.value.x, 
+        y: e.clientY - panOffset.value.y 
+    }
+}
+
+const handleMouseMove = (e: MouseEvent) => {
+    if (!isPanning.value) return
+    
+    panOffset.value = {
+        x: e.clientX - dragStart.value.x,
+        y: e.clientY - dragStart.value.y
+    }
+}
+
+const stopPanning = () => {
+    isPanning.value = false
 }
 
 </script>
@@ -43,14 +75,25 @@ const bringToFront = (key: 'templates' | 'inspector' | 'sequencer') => {
   <n-config-provider :theme-overrides="lightTheme">
     <n-message-provider>
       <!-- Main Canvas Container (Full Screen, Relative) -->
-      <main class="w-screen h-screen relative overflow-hidden bg-gray-100 flex items-center justify-center">
+      <main 
+        class="w-screen h-screen relative overflow-hidden bg-gray-100 flex items-center justify-center transition-colors"
+        :class="{ 'cursor-grab': !isPanning, 'cursor-grabbing': isPanning }"
+        @mousedown="handleMouseDown"
+        @mousemove="handleMouseMove"
+        @mouseup="stopPanning"
+        @mouseleave="stopPanning"
+      >
         
         <!-- Zoom Slider (Fixed Left) -->
         <ZoomSlider v-model="previewScale" />
 
         <!-- Game Preview (Centered & Scaled) -->
         <DeviceContainer
-            :style="{ transform: `scale(${previewScale})`, transition: 'transform 0.1s ease-out' }"
+            :style="{ 
+                transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${previewScale})`, 
+                transition: isPanning ? 'none' : 'transform 0.1s ease-out',
+                pointerEvents: isPanning ? 'none' : 'auto'
+            }"
         >
             <GameRenderer />
         </DeviceContainer>

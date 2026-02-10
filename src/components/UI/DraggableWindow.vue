@@ -125,7 +125,7 @@ onUnmounted(() => {
         left: position.x + 'px', 
         top: position.y + 'px',
         width: isCollapsed ? '200px' : (props.width || '300px'),
-        zIndex: props.zIndex || 40
+        zIndex: props.zIndex || 50
     }"
     @mousedown="handleFocus"
   >

@@ -95,7 +95,7 @@ const resetZoom = () => {
     align-items: center;
     gap: 8px;
     user-select: none;
-    z-index: 60; /* Higher than windows */
+    z-index: 20; /* Lower than windows (50+) but above content */
 }
 
 .zoom-label {
