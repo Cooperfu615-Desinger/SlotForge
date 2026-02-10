@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps<{
     title: string
@@ -20,10 +20,44 @@ const position = ref({ x: props.initialX, y: props.initialY })
 const isDragging = ref(false)
 const dragStart = ref({ x: 0, y: 0 })
 const initialPos = ref({ x: 0, y: 0 })
+const windowRef = ref<HTMLElement | null>(null)
 
-// Z-Index Handling (Simple local override, parent should manage true stacking context if needed)
-// But for now we rely on standard z-index and click-to-front logic if parent provides it.
-// Default z-index for windows is 40. Active is 50.
+// Boundary Logic
+const PADDING = 20
+
+const clampPosition = () => {
+    if (!windowRef.value) return
+
+    const rect = windowRef.value.getBoundingClientRect()
+    const winW = window.innerWidth
+    const winH = window.innerHeight
+    
+    // Width/Height might change if collapsed
+    const w = rect.width
+    const h = rect.height
+
+    let newX = position.value.x
+    let newY = position.value.y
+
+    // Clamp X
+    // min: PADDING
+    // max: winW - w - PADDING
+    if (newX < PADDING) newX = PADDING
+    if (newX > winW - w - PADDING) newX = Math.max(PADDING, winW - w - PADDING)
+
+    // Clamp Y
+    // min: PADDING
+    // max: winH - h - PADDING
+    if (newY < PADDING) newY = PADDING
+    if (newY > winH - h - PADDING) newY = Math.max(PADDING, winH - h - PADDING)
+
+    position.value = { x: newX, y: newY }
+    emit('update:position', newX, newY)
+}
+
+const onResize = () => {
+    clampPosition()
+}
 
 // Drag Logic
 const startDrag = (e: MouseEvent) => {
@@ -44,11 +78,19 @@ const onDrag = (e: MouseEvent) => {
     if (!isDragging.value) return
     const dx = e.clientX - dragStart.value.x
     const dy = e.clientY - dragStart.value.y
+    
+    // Raw position
     position.value = {
         x: initialPos.value.x + dx,
         y: initialPos.value.y + dy
     }
-    emit('update:position', position.value.x, position.value.y)
+    
+    // Clamp immediately
+    // Note: Clamping during drag can feel "sticky" but ensures safety.
+    // Ideally we clamp the *target* position. 
+    // Let's rely on clampPosition logic but applied to current calc.
+    // Actually calling clampPosition() here is fine.
+    clampPosition()
 }
 
 const stopDrag = () => {
@@ -61,10 +103,22 @@ const handleFocus = () => {
     emit('focus')
 }
 
+onMounted(() => {
+    window.addEventListener('resize', onResize)
+    // Initial clamp after mount to ensure safety
+    // Use timeout to allow rendering
+    setTimeout(clampPosition, 0)
+})
+
+onUnmounted(() => {
+    window.removeEventListener('resize', onResize)
+})
+
 </script>
 
 <template>
   <div 
+    ref="windowRef"
     class="draggable-window"
     :class="{ collapsed: isCollapsed }"
     :style="{ 

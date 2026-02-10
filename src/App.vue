@@ -7,6 +7,7 @@ import Sidebar from './components/Sidebar/Sidebar.vue'
 import TopNavBar from './components/TopNavBar.vue'
 import DraggableWindow from './components/UI/DraggableWindow.vue'
 import SequencerPanel from './components/Sequencer/SequencerPanel.vue'
+import ZoomSlider from './components/UI/ZoomSlider.vue' // Import ZoomSlider
 
 const lightTheme: GlobalThemeOverrides = {
   common: {
@@ -14,6 +15,9 @@ const lightTheme: GlobalThemeOverrides = {
     primaryColor: '#18a058',
   },
 }
+
+// Global Zoom State
+const previewScale = ref(1.0)
 
 // Initial Positions (Calculated once on setup)
 const inspectorInitialX = window.innerWidth - 340
@@ -41,8 +45,13 @@ const bringToFront = (key: 'templates' | 'inspector' | 'sequencer') => {
       <!-- Main Canvas Container (Full Screen, Relative) -->
       <main class="w-screen h-screen relative overflow-hidden bg-gray-100 flex items-center justify-center">
         
-        <!-- Game Preview (Centered) -->
-        <DeviceContainer>
+        <!-- Zoom Slider (Fixed Left) -->
+        <ZoomSlider v-model="previewScale" />
+
+        <!-- Game Preview (Centered & Scaled) -->
+        <DeviceContainer
+            :style="{ transform: `scale(${previewScale})`, transition: 'transform 0.1s ease-out' }"
+        >
             <GameRenderer />
         </DeviceContainer>
 
