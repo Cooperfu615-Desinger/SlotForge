@@ -1,45 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
 import { useGameStore, type SpeedMode } from '../../stores/gameStore'
 
 const gameStore = useGameStore()
-
-// --- UI State ---
-const isCollapsed = ref(false)
-const panelRef = ref<HTMLElement | null>(null)
-
-// Dragging Logic
-const isDragging = ref(false)
-const position = ref({ x: 0, y: 0 }) // Transform offset
-const dragStart = ref({ x: 0, y: 0 })
-const initialPos = ref({ x: 0, y: 0 })
-
-const startDrag = (e: MouseEvent) => {
-    if (isCollapsed.value && e.target instanceof Element && e.target.closest('.minimize-btn')) return
-    
-    isDragging.value = true
-    dragStart.value = { x: e.clientX, y: e.clientY }
-    initialPos.value = { ...position.value }
-    
-    document.addEventListener('mousemove', onDrag)
-    document.addEventListener('mouseup', stopDrag)
-}
-
-const onDrag = (e: MouseEvent) => {
-    if (!isDragging.value) return
-    const dx = e.clientX - dragStart.value.x
-    const dy = e.clientY - dragStart.value.y
-    position.value = {
-        x: initialPos.value.x + dx,
-        y: initialPos.value.y + dy
-    }
-}
-
-const stopDrag = () => {
-    isDragging.value = false
-    document.removeEventListener('mousemove', onDrag)
-    document.removeEventListener('mouseup', stopDrag)
-}
 
 // --- Actions (Mock & Real) ---
 
@@ -63,155 +25,74 @@ const triggerAction = (actionName: string) => {
 // --- Timeline Data ---
 const tracks = ['Global', 'Reel 1', 'Reel 2', 'Reel 3', 'Reel 4', 'Reel 5', 'Audio/FX']
 
+defineProps<{
+    embedded?: boolean
+}>()
+
 </script>
 
 <template>
-  <div 
-    class="director-panel" 
-    :class="{ collapsed: isCollapsed }"
-    ref="panelRef"
-    :style="{ transform: `translate(calc(-50% + ${position.x}px), ${position.y}px)` }"
-  >
-    
-    <!-- HEADER (Draggable Handle) -->
-    <div class="panel-header" @mousedown="startDrag">
-        <div class="header-title">Director Console</div>
-        <button class="minimize-btn" @click.stop="isCollapsed = !isCollapsed">
-            {{ isCollapsed ? '+' : '_' }}
-        </button>
-    </div>
-
-    <!-- CONTENT (Collapsible) -->
-    <div class="panel-content" v-show="!isCollapsed">
+  <div class="sequencer-content h-full flex flex-col bg-white">
         
-        <!-- TOOLBAR -->
-        <div class="toolbar">
-            <!-- Group A: Control -->
-            <div class="tool-group">
-                <div class="group-label">CONTROL</div>
-                <div class="btn-row">
-                    <div class="segmented-control">
-                        <button class="btn" :class="{ active: gameStore.currentSpeedMode === 'normal' }" @click="setSpeed('normal')">1x</button>
-                        <button class="btn" :class="{ active: gameStore.currentSpeedMode === 'fast' }" @click="setSpeed('fast')">2x</button>
-                        <button class="btn" :class="{ active: gameStore.currentSpeedMode === 'instant' }" @click="setSpeed('instant')">3x</button>
-                    </div>
-                    <button class="btn action-btn text-bold" :class="{ active: gameStore.isSpinning }" @click="handleMainButton">
-                        {{ gameStore.isSpinning ? 'STOP' : 'SPIN' }}
-                    </button>
+    <!-- TOOLBAR -->
+    <div class="toolbar flex-shrink-0">
+        <!-- Group A: Control -->
+        <div class="tool-group">
+            <div class="group-label">CONTROL</div>
+            <div class="btn-row">
+                <div class="segmented-control">
+                    <button class="btn" :class="{ active: gameStore.currentSpeedMode === 'normal' }" @click="setSpeed('normal')">1x</button>
+                    <button class="btn" :class="{ active: gameStore.currentSpeedMode === 'fast' }" @click="setSpeed('fast')">2x</button>
+                    <button class="btn" :class="{ active: gameStore.currentSpeedMode === 'instant' }" @click="setSpeed('instant')">3x</button>
                 </div>
-            </div>
-
-            <div class="divider"></div>
-
-            <!-- Group B: Win Demo -->
-            <div class="tool-group">
-                <div class="group-label">WIN DEMO</div>
-                <div class="btn-row">
-                    <button class="btn" @click="triggerAction('Small Win')">Small</button>
-                    <button class="btn" @click="triggerAction('Big Win')">Big Win</button>
-                </div>
-            </div>
-
-            <div class="divider"></div>
-
-            <!-- Group C: FX Test -->
-            <div class="tool-group">
-                <div class="group-label">FX TEST</div>
-                <div class="btn-row">
-                    <button class="btn" @click="triggerAction('Line FX')">Line</button>
-                    <button class="btn" @click="triggerAction('Way FX')">Way</button>
-                </div>
+                <button class="btn action-btn text-bold" :class="{ active: gameStore.isSpinning }" @click="handleMainButton">
+                    {{ gameStore.isSpinning ? 'STOP' : 'SPIN' }}
+                </button>
             </div>
         </div>
 
-        <!-- TIMELINE -->
-        <div class="timeline-container">
-            <div class="track-headers">
-                <div class="header-item placeholder"></div>
-                <div v-for="track in tracks" :key="track" class="header-item">{{ track }}</div>
-            </div>
-            <div class="track-lanes">
-                <div class="ruler">
-                    <span v-for="i in 20" :key="i" class="tick" :style="{ left: (i * 50) + 'px' }">{{ (i * 0.5).toFixed(1) }}s</span>
-                    <div class="playhead"></div>
-                </div>
-                <div v-for="track in tracks" :key="'lane-'+track" class="lane"></div>
+        <div class="divider"></div>
+
+        <!-- Group B: Win Demo -->
+        <div class="tool-group">
+            <div class="group-label">WIN DEMO</div>
+            <div class="btn-row">
+                <button class="btn" @click="triggerAction('Small Win')">Small</button>
+                <button class="btn" @click="triggerAction('Big Win')">Big Win</button>
             </div>
         </div>
 
+        <div class="divider"></div>
+
+        <!-- Group C: FX Test -->
+        <div class="tool-group">
+            <div class="group-label">FX TEST</div>
+            <div class="btn-row">
+                <button class="btn" @click="triggerAction('Line FX')">Line</button>
+                <button class="btn" @click="triggerAction('Way FX')">Way</button>
+            </div>
+        </div>
     </div>
+
+    <!-- TIMELINE -->
+    <div class="timeline-container flex-1 min-h-0">
+        <div class="track-headers">
+            <div class="header-item placeholder"></div>
+            <div v-for="track in tracks" :key="track" class="header-item">{{ track }}</div>
+        </div>
+        <div class="track-lanes">
+            <div class="ruler">
+                <span v-for="i in 20" :key="i" class="tick" :style="{ left: (i * 50) + 'px' }">{{ (i * 0.5).toFixed(1) }}s</span>
+                <div class="playhead"></div>
+            </div>
+            <div v-for="track in tracks" :key="'lane-'+track" class="lane"></div>
+        </div>
+    </div>
+
   </div>
 </template>
 
 <style scoped>
-/* --- ROOT PANEL --- */
-.director-panel {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  /* transform is handled inline for drag logic */
-  width: 90%;
-  max-width: 1000px;
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  z-index: 50;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  transition: height 0.3s ease;
-}
-
-.director-panel.collapsed {
-    width: 200px; /* Shrink width when collapsed */
-    height: auto;
-}
-
-/* --- HEADER --- */
-.panel-header {
-    height: 32px;
-    background-color: #374151; /* gray-700 */
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 12px;
-    cursor: grab;
-    user-select: none;
-}
-
-.panel-header:active {
-    cursor: grabbing;
-}
-
-.header-title {
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-}
-
-.minimize-btn {
-    background: transparent;
-    border: none;
-    color: #e5e7eb;
-    cursor: pointer;
-    font-weight: bold;
-    padding: 0 4px;
-    font-size: 14px;
-}
-
-.minimize-btn:hover {
-    color: white;
-}
-
-/* --- CONTENT --- */
-.panel-content {
-    display: flex;
-    flex-direction: column;
-    height: 250px; /* Fixed height for content area */
-}
-
 /* --- TOOLBAR --- */
 .toolbar {
     height: 60px;

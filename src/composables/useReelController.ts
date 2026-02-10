@@ -176,6 +176,7 @@ export const useReelController = (config: ReelConfig, onAllReelsStopped?: () => 
     return {
         status,
         position,
+        offsetY: position, // Alias for legacy/external use
         speed,
         spin,
         stop,
