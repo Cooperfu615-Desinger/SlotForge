@@ -144,9 +144,7 @@ watch(() => reelController.status.value, (s) => {
         // Let's add a timeout in the watcher here to call stop.
         
         const preset = gameStore.currentPreset
-        const delay = props.reelId * (preset.intervalBetweenReels || 200)
-        // Total time from start to stop command
-        // const runTime = (preset.spinDuration || 2000) + delay // Unused
+        // const delay = props.reelId * (preset.intervalBetweenReels || 200) // Unused
         
         // We are already in 'SPINNING' state, which happens after acceleration (0.5s) + delay.
         // Wait, acceleration has delay.
