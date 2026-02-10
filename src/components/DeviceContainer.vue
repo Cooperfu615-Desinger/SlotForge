@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useManifestStore } from '../stores/manifest'
 
 const containerRef = ref<HTMLElement | null>(null)
+const manifestStore = useManifestStore()
 // Scale the entire "Phone Wrapper" to fit the window, preserving aspect ratio.
 const wrapperScale = ref(1)
 
@@ -38,6 +40,10 @@ const updateScale = () => {
   wrapperScale.value = Math.min(scaleX, scaleY, 1.0)
 }
 
+const handleBackgroundClick = () => {
+  manifestStore.setSelected(null)
+}
+
 onMounted(() => {
   window.addEventListener('resize', updateScale)
   setTimeout(updateScale, 0)
@@ -55,6 +61,7 @@ onUnmounted(() => {
     ref="containerRef" 
     class="w-full h-full flex items-center justify-center bg-gray-100 overflow-hidden"
     style="padding: 20px 40px;"
+    @click="handleBackgroundClick"
   >
     
     <!-- Scaled Wrapper (The "Phone" Unit) -->
@@ -74,6 +81,7 @@ onUnmounted(() => {
       <!-- Background white/black allows 'Pillarbox' effect if frame is wider -->
       <div 
         class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1280px] h-[720px] bg-white shadow-2xl z-10"
+        @click.stop
       >
          <slot />
       </div>
