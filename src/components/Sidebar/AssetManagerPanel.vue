@@ -170,7 +170,63 @@ const getSizeWarning = (assetId: string, specWidth: number, specHeight: number) 
   if (customAsset.width !== specWidth || customAsset.height !== specHeight) {
     return `⚠️ 原圖 ${customAsset.width}x${customAsset.height} (將自動縮放)`
   }
+  if (customAsset.width !== specWidth || customAsset.height !== specHeight) {
+    return `⚠️ 原圖 ${customAsset.width}x${customAsset.height} (將自動縮放)`
+  }
   return null
+}
+
+const updateSize = (assetId: string, type: 'w' | 'h', value: string) => {
+  const numVal = parseInt(value)
+  if (isNaN(numVal)) return
+
+  const customAsset = forgeStore.getAsset(assetId)
+  if (!customAsset) return
+
+  // Current display values or fallback to spec
+  const currentW = customAsset.displayW ?? assetBOM.value.find(a => a.id === assetId)?.specWidth ?? 0
+  const currentH = customAsset.displayH ?? assetBOM.value.find(a => a.id === assetId)?.specHeight ?? 0
+
+  if (type === 'w') {
+    forgeStore.updateAssetSize(assetId, numVal, currentH)
+  } else {
+    forgeStore.updateAssetSize(assetId, currentW, numVal)
+  }
+}
+
+const updateOffset = (assetId: string, type: 'x' | 'y', value: string) => {
+  const numVal = parseInt(value)
+  if (isNaN(numVal)) return
+
+  const customAsset = forgeStore.getAsset(assetId)
+  if (!customAsset) return
+
+  const currentX = customAsset.offsetX ?? 0
+  const currentY = customAsset.offsetY ?? 0
+
+  if (type === 'x') {
+    forgeStore.updateAssetOffset(assetId, numVal, currentY)
+  } else {
+    forgeStore.updateAssetOffset(assetId, currentX, numVal)
+  }
+}
+
+const getDisplaySize = (assetId: string) => {
+  const customAsset = forgeStore.getAsset(assetId)
+  const spec = assetBOM.value.find(a => a.id === assetId)
+  
+  return {
+    w: customAsset?.displayW ?? spec?.specWidth ?? 0,
+    h: customAsset?.displayH ?? spec?.specHeight ?? 0
+  }
+}
+
+const getDisplayOffset = (assetId: string) => {
+  const customAsset = forgeStore.getAsset(assetId)
+  return {
+    x: customAsset?.offsetX ?? 0,
+    y: customAsset?.offsetY ?? 0
+  }
 }
 </script>
 
@@ -234,6 +290,70 @@ const getSizeWarning = (assetId: string, specWidth: number, specHeight: number) 
             class="text-yellow-600 font-semibold mt-1"
           >
             ⚠️ {{ getSizeWarning(asset.id, asset.specWidth, asset.specHeight) }}
+          </div>
+        </div>
+
+        <!-- Size Override Controls (Custom Assets Only) -->
+        <div v-if="getAssetStatus(asset.id) === '自訂'" class="mb-3 p-2 bg-gray-50 rounded border border-gray-100">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xs font-bold text-gray-500">尺寸調整:</span>
+            <button 
+              @click="forgeStore.resetAssetSize(asset.id)"
+              class="text-[10px] px-1.5 py-0.5 bg-white border border-gray-200 rounded text-gray-500 hover:text-red-500 hover:border-red-200 transition-colors"
+            >
+              ↺ 重置
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="flex-1 flex items-center gap-1">
+              <label class="text-xs text-gray-400 font-mono">寬</label>
+              <input 
+                type="number" 
+                :value="getDisplaySize(asset.id).w"
+                @input="(e) => updateSize(asset.id, 'w', (e.target as HTMLInputElement).value)"
+                class="w-full px-1 py-1 text-xs border border-gray-200 rounded text-center font-mono focus:border-cyan-500 outline-none"
+              />
+            </div>
+            <div class="flex-1 flex items-center gap-1">
+              <label class="text-xs text-gray-400 font-mono">高</label>
+              <input 
+                type="number" 
+                :value="getDisplaySize(asset.id).h"
+                @input="(e) => updateSize(asset.id, 'h', (e.target as HTMLInputElement).value)"
+                class="w-full px-1 py-1 text-xs border border-gray-200 rounded text-center font-mono focus:border-cyan-500 outline-none"
+              />
+            </div>
+          </div>
+          
+          <!-- Offset Controls -->
+          <div class="flex items-center gap-2 mb-2 mt-2 pt-2 border-t border-gray-100">
+            <span class="text-xs font-bold text-gray-500">偏移調整:</span>
+            <button 
+              @click="forgeStore.resetAssetOffset(asset.id)"
+              class="text-[10px] px-1.5 py-0.5 bg-white border border-gray-200 rounded text-gray-500 hover:text-red-500 hover:border-red-200 transition-colors"
+            >
+              ↺ 重置
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="flex-1 flex items-center gap-1">
+              <label class="text-xs text-gray-400 font-mono">X</label>
+              <input 
+                type="number" 
+                :value="getDisplayOffset(asset.id).x"
+                @input="(e) => updateOffset(asset.id, 'x', (e.target as HTMLInputElement).value)"
+                class="w-full px-1 py-1 text-xs border border-gray-200 rounded text-center font-mono focus:border-cyan-500 outline-none"
+              />
+            </div>
+            <div class="flex-1 flex items-center gap-1">
+              <label class="text-xs text-gray-400 font-mono">Y</label>
+              <input 
+                type="number" 
+                :value="getDisplayOffset(asset.id).y"
+                @input="(e) => updateOffset(asset.id, 'y', (e.target as HTMLInputElement).value)"
+                class="w-full px-1 py-1 text-xs border border-gray-200 rounded text-center font-mono focus:border-cyan-500 outline-none"
+              />
+            </div>
           </div>
         </div>
 

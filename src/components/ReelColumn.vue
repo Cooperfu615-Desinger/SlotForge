@@ -93,11 +93,22 @@ const visibleSymbols = computed(() => {
     // Check for custom asset from ForgeStore
     // Extract ID (filename without extension) from assetPath
     const match = assetPath.match(/\/([^\/]+)\.(png|jpg|jpeg|webp|svg)$/i)
+    let displayW = props.symbolWidth
+    let displayH = displayHeight.value
+    let customOffsetX = 0
+    let customOffsetY = 0
+
     if (match && match[1]) {
       const assetId = match[1]
       const customAsset = forgeStore.getAsset(assetId)
       if (customAsset) {
         assetPath = customAsset.url
+        // Use custom display dimensions if available
+        if (customAsset.displayW) displayW = customAsset.displayW
+        if (customAsset.displayH) displayH = customAsset.displayH
+        // Use custom offsets if available
+        if (customAsset.offsetX) customOffsetX = customAsset.offsetX
+        if (customAsset.offsetY) customOffsetY = customAsset.offsetY
       }
     }
     
@@ -105,11 +116,20 @@ const visibleSymbols = computed(() => {
     // 基準位置 + 索引偏移 - 動畫位移的餘數 + 垂直置中偏移
     const y = ((i - 2) * props.symbolHeight - (offset % props.symbolHeight)) + gapOffset.value
     
+    // Center the image if dimensions are different from cell size
+    // AND apply custom offsets
+    const finalX = ((props.symbolWidth - displayW) / 2) + customOffsetX
+    const finalY = ((displayHeight.value - displayH) / 2) + customOffsetY
+
     return {
       key: `${stripIndex}-${symbolId}`,
       symbolId,
       assetPath,
-      y
+      y,
+      displayW,
+      displayH,
+      offsetX: finalX,
+      offsetY: finalY
     }
   })
 })
@@ -197,11 +217,12 @@ const debugInfo = computed(() => {
     <template v-for="(symbol, index) in visibleSymbols" :key="symbol.key">
       <!-- 圖片層 (總是存在，透過 visible 控制顯示) -->
       <v-image
+      <v-image
         :config="{
-          x: 0,
-          y: symbol.y,
-          width: symbolWidth,
-          height: displayHeight,
+          x: symbol.offsetX,
+          y: symbol.y + symbol.offsetY,
+          width: symbol.displayW,
+          height: symbol.displayH,
           image: getImage(symbol.assetPath),
           visible: !!getImage(symbol.assetPath)
         }"

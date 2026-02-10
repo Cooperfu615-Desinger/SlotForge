@@ -98,12 +98,15 @@ if (reelController) {
 // Main Config with animated Y position and custom asset dimensions
 const config = computed(() => {
   // CRITICAL: Always use the layout element's defined size (Auto-Fit Scaling)
-  const width = rect.value.w
-  const height = rect.value.h
+  // UNLESS: The user has explicitly overridden the size in AssetManagerPanel
+  const width = customAsset.value?.displayW ?? rect.value.w
+  const height = customAsset.value?.displayH ?? rect.value.h
+  const offsetX = customAsset.value?.offsetX ?? 0
+  const offsetY = customAsset.value?.offsetY ?? 0
   
   return {
-    x: rect.value.x,
-    y: rect.value.y + (reelController?.offsetY.value || 0),  // Apply animation offset
+    x: rect.value.x + offsetX,
+    y: rect.value.y + (reelController?.offsetY.value || 0) + offsetY,  // Apply animation + custom offset
     width: width,
     height: height,
     listening: props.element.listening ?? true,
@@ -145,8 +148,8 @@ const handleClick = () => {
       v-if="isLoaded && image" 
       :config="{
         image: image,
-        width: rect.w,
-        height: rect.h
+        width: config.width,
+        height: config.height
       }"
     />
 

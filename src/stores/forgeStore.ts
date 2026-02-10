@@ -6,6 +6,10 @@ export interface CustomAsset {
     width: number        // Original image width
     height: number       // Original image height
     filename: string     // Original filename
+    displayW?: number    // Custom display width (optional override)
+    displayH?: number    // Custom display height (optional override)
+    offsetX?: number     // Custom offset X (optional override)
+    offsetY?: number     // Custom offset Y (optional override)
 }
 
 export const useForgeStore = defineStore('forge', () => {
@@ -21,7 +25,11 @@ export const useForgeStore = defineStore('forge', () => {
                     url: blobUrl,
                     width: img.naturalWidth,
                     height: img.naturalHeight,
-                    filename: file.name
+                    filename: file.name,
+                    displayW: undefined,
+                    displayH: undefined,
+                    offsetX: undefined,
+                    offsetY: undefined
                 }
                 console.log(`[ForgeStore] Asset uploaded: ${assetId} (${img.naturalWidth}x${img.naturalHeight})`)
                 resolve()
@@ -41,14 +49,45 @@ export const useForgeStore = defineStore('forge', () => {
         console.log('[ForgeStore] All custom assets reset')
     }
 
+    const updateAssetSize = (assetId: string, width: number, height: number) => {
+        if (customAssets.value[assetId]) {
+            customAssets.value[assetId].displayW = width
+            customAssets.value[assetId].displayH = height
+        }
+    }
+
+    const resetAssetSize = (assetId: string) => {
+        if (customAssets.value[assetId]) {
+            customAssets.value[assetId].displayW = undefined
+            customAssets.value[assetId].displayH = undefined
+        }
+    }
+
+    const updateAssetOffset = (assetId: string, x: number, y: number) => {
+        if (customAssets.value[assetId]) {
+            customAssets.value[assetId].offsetX = x
+            customAssets.value[assetId].offsetY = y
+        }
+    }
+
+    const resetAssetOffset = (assetId: string) => {
+        if (customAssets.value[assetId]) {
+            customAssets.value[assetId].offsetX = undefined
+            customAssets.value[assetId].offsetY = undefined
+        }
+    }
+
     const getAsset = (assetId: string) => {
         return customAssets.value[assetId] || null
     }
 
     return {
-        customAssets,
         uploadAsset,
         resetAssets,
-        getAsset
+        getAsset,
+        updateAssetSize,
+        resetAssetSize,
+        updateAssetOffset,
+        resetAssetOffset
     }
 })
