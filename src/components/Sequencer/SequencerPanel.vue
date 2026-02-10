@@ -74,18 +74,22 @@ defineProps<{
                 <button class="btn" @click="triggerWin(20000)">Mega</button>
                 <button class="btn" @click="triggerWin(50000)">Super</button>
                 <button class="btn" @click="triggerWin(100000)">Epic</button>
-            </div>
-            <!-- Duration Setting -->
-            <div class="flex items-center gap-2 mt-1 px-1">
-                <span class="text-[10px] text-gray-400 font-bold">DUR:</span>
-                <input 
-                  type="number" 
-                  step="0.1" 
-                  :value="gameStore.winDuration / 1000" 
-                  @input="updateWinDuration"
-                  class="w-12 h-6 text-xs text-center border border-gray-200 rounded"
-                />
-                <span class="text-[10px] text-gray-400">s</span>
+                
+                <!-- Spacer/Divider -->
+                <div class="h-4 w-px bg-gray-300 mx-1"></div>
+
+                <!-- Duration Setting (Inline) -->
+                <div class="flex items-center gap-1">
+                    <span class="text-[10px] text-gray-400 font-bold">DUR:</span>
+                    <input 
+                      type="number" 
+                      step="0.1" 
+                      :value="gameStore.winDuration / 1000" 
+                      @input="updateWinDuration"
+                      class="w-12 h-6 text-xs text-center border border-gray-200 rounded focus:border-blue-400 outline-none"
+                    />
+                    <span class="text-[10px] text-gray-400">s</span>
+                </div>
             </div>
         </div>
 
