@@ -93,18 +93,44 @@ export const useManifestStore = defineStore('manifest', () => {
         const gapX = config.gap_x ?? config.gap;
         const gapY = config.gap_y ?? config.gap;
 
+        // Deck Construction Logic for Preview
+        // Priority: Wild, Scatter, H1, H2, H3, H4, L1, L2, L3, L4
+        const PRIORITY_ICONS = ['wild', 'scatter', 'h1', 'h2', 'h3', 'h4', 'l1', 'l2', 'l3', 'l4']
+        const STANDARD_ICONS = ['h1', 'h2', 'h3', 'h4', 'l1', 'l2', 'l3', 'l4']
+
+        const totalSlots = config.cols * config.rows
+        let deck: string[] = []
+
+        if (totalSlots === 9) {
+            // Special Case: 3x3 (9 slots)
+            // Exclude L4 to fit in 9 slots
+            deck = PRIORITY_ICONS.filter(id => id !== 'l4')
+        } else {
+            // Standard Case: >= 10 slots
+            // 1. Add all priority icons (10 items)
+            deck = [...PRIORITY_ICONS]
+
+            // 2. Fill remaining slots with random standard icons
+            const remaining = totalSlots - 10
+            for (let i = 0; i < remaining; i++) {
+                const randomId = STANDARD_ICONS[Math.floor(Math.random() * STANDARD_ICONS.length)]!
+                deck.push(randomId)
+            }
+        }
+
+        let deckIndex = 0
+
         for (let c = 0; c < config.cols; c++) {
             for (let r = 0; r < config.rows; r++) {
                 const x = area.x + c * (config.cell_w + gapX)
                 const y = area.y + r * (config.cell_h + gapY)
 
-                // Fallback / Asset logic
-                // Using different asset sets based on grid type could be here
-                // For now reusing same symbols but they will scale
-                const randomId = Math.floor(Math.random() * 8) + 1
-                const typePrefix = randomId > 4 ? 'h' : 'l'
-                const typeNum = randomId > 4 ? randomId - 4 : randomId
-                const asset = `assets/symbols/sym_${typePrefix}${typeNum}.png`
+                // Pop from deck sequentially
+                const iconId = deck[deckIndex] || 'l1' // Fallback safety
+                deckIndex++
+
+                // Construct asset path
+                const asset = `assets/symbols/sym_${iconId}.png`
 
                 symbols.push({
                     id: `sym_c${c + 1}_r${r + 1}`,
