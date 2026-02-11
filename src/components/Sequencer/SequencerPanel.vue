@@ -13,6 +13,13 @@ const timelineStore = useTimelineStore()
 // --- Actions (Mock & Real) ---
 
 const setSpeed = (mode: SpeedMode) => {
+  // Toggle behavior: if clicking the same speed button while spinning, stop immediately
+  if (gameStore.isSpinning && gameStore.currentSpeedMode === mode) {
+    gameStore.stopSpin()
+    console.log(`Trigger: Stop Spin (via ${mode} toggle)`)
+    return
+  }
+  
   gameStore.setSpeed(mode)
   timelineStore.generateFromPreset(mode) // Update Timeline
   console.log(`Trigger: Set Speed ${mode}`)
@@ -67,7 +74,8 @@ const updateWinDuration = (e: Event) => {
 let startTime = 0
 
 const tick = (_time: number, _deltaTime: number, _frame: number) => {
-    if (!gameStore.isSpinning) return
+    // Pause ticker during seeking (playhead dragging)
+    if (!gameStore.isSpinning || gameStore.isSeeking) return
 
     // GSAP ticker gives time in seconds, we need ms relative to start
     // But ticker time is global. 
