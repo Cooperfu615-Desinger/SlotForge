@@ -51,7 +51,7 @@ const playheadLeft = computed(() => {
             <div class="w-32 flex-shrink-0 border-r border-gray-200 h-full bg-white"></div>
             
             <!-- Ruler Lane -->
-            <div class="flex-1 h-full relative">
+            <div class="flex-1 h-full relative min-w-[1000px]">
                 <div 
                     v-for="tick in ticks" 
                     :key="tick.time"
@@ -74,7 +74,7 @@ const playheadLeft = computed(() => {
         </div>
 
         <!-- Tracks -->
-        <div class="flex-1 overflow-y-auto overflow-x-hidden relative">
+        <div class="flex-1 overflow-y-auto overflow-x-auto relative">
             <!-- Global Playhead Overlay Wrapper -->
             <!-- Positioned to match the 'flex-1' lane area (left: 128px) -->
             <div class="absolute top-0 bottom-0 right-0 pointer-events-none z-30" style="left: 128px;">
@@ -104,7 +104,7 @@ const playheadLeft = computed(() => {
                 </div>
 
                 <!-- Right Lane (Timeline) -->
-                <div class="flex-1 h-full relative">
+                <div class="flex-1 h-full relative min-w-[1000px]">
                     <!-- Grid Lines matching ruler -->
                     <div 
                         v-for="tick in ticks" 
