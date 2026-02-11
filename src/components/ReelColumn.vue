@@ -116,21 +116,84 @@ watch(() => gameStore.gameState, (v) => {
 watch(() => gameStore.seekTime, (newTime) => {
     if (!gameStore.isSeeking) return
     
-    // Calculate position based on timestamp
-    // Simple linear mapping: position = (time / totalDuration) * totalDistance
+    updateReelPosition(newTime)
+})
+
+// Watch for preset changes (e.g. block resize) to update physics in real-time
+watch(() => gameStore.currentPreset, () => {
+    // Only update if IDLE or Seeking (don't interfere with active spin)
+    if (gameStore.gameState !== 'IDLE' && !gameStore.isSeeking) return
+    updateReelPosition(gameStore.seekTime)
+}, { deep: true })
+
+const updateReelPosition = (time: number) => {
     const preset = gameStore.currentPreset
-    const totalDuration = preset.spinDuration
-    
-    if (totalDuration === 0) return // Avoid division by zero
-    
-    const progress = Math.min(newTime / totalDuration, 1)
-    
-    // Assume reels travel ~10 symbols during spin
-    const totalDistance = props.symbolHeight * 10
-    const targetPosition = progress * totalDistance
+    if (!preset) return
+
+    // Phase Durations
+    const tSpin = preset.spinDuration
+    const tDec = preset.decelerateDuration
+    const tAlign = preset.alignDuration
+    const tSettle = preset.settleDuration
+
+    // Physics Constants (Approx matching useReelController)
+    const MAX_SPEED = 2500 // px/s
+    const ALIGN_SPEED = 200 // px/s (Estimate for ease out target)
+    const BOUNCE_DIST = 40 // px (Estimate)
+
+    let targetPosition = 0
+
+    // --- Phase 1: Spin (Accelerate -> Max Speed) ---
+    if (time <= tSpin) {
+        targetPosition = MAX_SPEED * (time / 1000)
+    } 
+    // --- Phase 2: Decelerate (Max Speed -> Align Speed) ---
+    else if (time <= tSpin + tDec) {
+        const p1Dist = MAX_SPEED * (tSpin / 1000)
+        const timeInPhase = time - tSpin
+        const durationInSec = tDec / 1000
+        
+        const avgSpeed = (MAX_SPEED + ALIGN_SPEED) / 2
+        
+        if (durationInSec > 0) {
+            const accel = (ALIGN_SPEED - MAX_SPEED) / durationInSec
+            const distInPhase = (MAX_SPEED * (timeInPhase/1000)) + (0.5 * accel * Math.pow(timeInPhase/1000, 2))
+            targetPosition = p1Dist + distInPhase
+        } else {
+            targetPosition = p1Dist
+        }
+    }
+    // --- Phase 3: Align (Constant Align Speed) ---
+    else if (time <= tSpin + tDec + tAlign) {
+        const p1Dist = MAX_SPEED * (tSpin / 1000)
+        // P2 Total Dist
+        const durationP2 = tDec / 1000
+        const accelP2 = (ALIGN_SPEED - MAX_SPEED) / (durationP2 || 1)
+        const p2Dist = (MAX_SPEED * durationP2) + (0.5 * accelP2 * Math.pow(durationP2, 2))
+        
+        const timeInPhase = time - (tSpin + tDec)
+        targetPosition = p1Dist + p2Dist + (ALIGN_SPEED * (timeInPhase / 1000))
+    }
+    // --- Phase 4: Settle (Bounce) ---
+    else {
+        // Calculate total distance before settle
+        const p1Dist = MAX_SPEED * (tSpin / 1000)
+        const durationP2 = tDec / 1000
+        const accelP2 = (ALIGN_SPEED - MAX_SPEED) / (durationP2 || 1)
+        const p2Dist = (MAX_SPEED * durationP2) + (0.5 * accelP2 * Math.pow(durationP2, 2))
+        const p3Dist = ALIGN_SPEED * (tAlign / 1000)
+        
+        const baseDist = p1Dist + p2Dist + p3Dist
+        
+        // Bounce Logic
+        const timeInPhase = time - (tSpin + tDec + tAlign)
+        const progress = Math.min(timeInPhase / tSettle, 1)
+        
+        targetPosition = baseDist + (BOUNCE_DIST * Math.sin(progress * Math.PI))
+    }
     
     reelController.seekToPosition(targetPosition)
-})
+}
 
 // For the "Click STOP" requirement:
 // We need to Expose `stop` or have the parent call it.

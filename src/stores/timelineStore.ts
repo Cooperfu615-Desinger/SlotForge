@@ -9,6 +9,8 @@ export interface TimelineBlock {
     duration: number // ms
     label: string
     color: string
+    textColor?: string
+    phase?: 'spin' | 'decelerate' | 'align' | 'settle'
 }
 
 export interface TimelineTrack {
@@ -17,7 +19,8 @@ export interface TimelineTrack {
 }
 
 // Duration constraints
-const MIN_DURATION = 500  // ms
+// Duration constraints
+const MIN_DURATION = 100  // ms (Lower min for short phases like settle)
 const MAX_DURATION = 10000 // ms
 
 export const useTimelineStore = defineStore('timeline', () => {
@@ -48,33 +51,65 @@ export const useTimelineStore = defineStore('timeline', () => {
         const preset = SPEED_PRESETS[mode]
         if (!preset) return
 
-        // Create a block representing the Spin Sequence
-        // Main Spin (Red/Gray based on speed)
-        let color = '#9ca3af' // gray-400
-        if (mode === 'fast') color = '#fbbf24' // amber-400
-        if (mode === 'instant') color = '#ef4444' // red-500
+        let currentTimeOffset = 0
+        const trackId = 'reels'
+        const baseId = `seq-${Date.now()}`
 
-        // Total spin duration from preset
-        // For visualization, we use spinDuration as the main block
-        // Actually the total time is spin + decelerate + align + settle
-        // But the preset structure is a bit complex. 
-        // Let's simplified visualization: "Spinning" block.
-
-        // Duration = spinDuration (Base spin time)
-        // Note: spinDuration in preset is often the "Max" time or base time.
-        // Let's use `preset.spinDuration` as the block length for now.
-
+        // Phase 1: Spin (Darker Gray)
+        const spinDuration = preset.spinDuration
         blocks.value.push({
-            id: `spin-${Date.now()}`,
-            trackId: 'reels',
-            start: 0,
-            duration: preset.spinDuration,
-            label: `Spin (${mode})`,
-            color: color
+            id: `${baseId}-spin`,
+            trackId,
+            start: currentTimeOffset,
+            duration: spinDuration,
+            label: 'SPIN',
+            color: '#4b5563', // gray-600
+            phase: 'spin'
         })
+        currentTimeOffset += spinDuration
+
+        // Phase 2: Decelerate (Medium Gray)
+        const decelerateDuration = preset.decelerateDuration
+        blocks.value.push({
+            id: `${baseId}-dec`,
+            trackId,
+            start: currentTimeOffset,
+            duration: decelerateDuration,
+            label: 'DEC',
+            color: '#6b7280', // gray-500
+            phase: 'decelerate'
+        })
+        currentTimeOffset += decelerateDuration
+
+        // Phase 3: Align (Light Gray)
+        const alignDuration = preset.alignDuration
+        blocks.value.push({
+            id: `${baseId}-aln`,
+            trackId,
+            start: currentTimeOffset,
+            duration: alignDuration,
+            label: 'ALN',
+            color: '#9ca3af', // gray-400
+            phase: 'align'
+        })
+        currentTimeOffset += alignDuration
+
+        // Phase 4: Settle (Lighter Gray)
+        const settleDuration = preset.settleDuration
+        blocks.value.push({
+            id: `${baseId}-set`,
+            trackId,
+            start: currentTimeOffset,
+            duration: settleDuration,
+            label: 'SET',
+            color: '#d1d5db', // gray-300
+            textColor: '#374151', // gray-700
+            phase: 'settle'
+        })
+        currentTimeOffset += settleDuration
 
         // Adjust view duration to fit
-        totalDuration.value = Math.max(5000, preset.spinDuration + 1000)
+        totalDuration.value = Math.max(5000, currentTimeOffset + 1000)
     }
 
     const reset = () => {
@@ -115,9 +150,11 @@ export const useTimelineStore = defineStore('timeline', () => {
         const maxEnd = Math.max(...blocks.value.map(b => b.start + b.duration))
         totalDuration.value = Math.max(5000, maxEnd + 1000)
 
-        // Sync with gameStore preset to update reel animation speed
-        const gameStore = useGameStore()
-        gameStore.updateSpinDuration(constrainedDuration)
+        // Sync with gameStore physics
+        if (block.phase) {
+            const gameStore = useGameStore()
+            gameStore.updatePhaseDuration(block.phase, constrainedDuration)
+        }
     }
 
     return {

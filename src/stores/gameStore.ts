@@ -319,10 +319,29 @@ export const useGameStore = defineStore('game', () => {
      * This ensures reel animation speed matches the edited timeline
      */
     const updateSpinDuration = (newDuration: number) => {
-        // Update the current preset's spinDuration
+        updatePhaseDuration('spin', newDuration)
+    }
+
+    /**
+     * Update specific phase duration for 4-phase physics
+     */
+    const updatePhaseDuration = (phase: 'spin' | 'decelerate' | 'align' | 'settle', newDuration: number) => {
         const preset = SPEED_PRESETS[currentSpeedMode.value]
-        if (preset) {
-            preset.spinDuration = newDuration
+        if (!preset) return
+
+        switch (phase) {
+            case 'spin':
+                preset.spinDuration = newDuration
+                break
+            case 'decelerate':
+                preset.decelerateDuration = newDuration
+                break
+            case 'align':
+                preset.alignDuration = newDuration
+                break
+            case 'settle':
+                preset.settleDuration = newDuration
+                break
         }
     }
 
@@ -340,6 +359,7 @@ export const useGameStore = defineStore('game', () => {
         currentLines,
         setLines,
         isSequencerEnabled,
+        gameState,
         showGrid,
         toggleGrid,
         winDuration,
@@ -369,6 +389,7 @@ export const useGameStore = defineStore('game', () => {
         isSeeking,
         seekTo,
         stopSeeking,
-        updateSpinDuration
+        updateSpinDuration,
+        updatePhaseDuration
     }
 })

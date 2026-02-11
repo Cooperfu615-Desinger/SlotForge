@@ -186,8 +186,8 @@ const stopResize = () => {
                     <div 
                         v-for="block in store.blocks.filter(b => b.trackId === track.id)"
                         :key="block.id"
-                        class="absolute top-1 bottom-1 rounded-sm flex items-center px-2 text-[10px] text-white font-bold shadow-sm overflow-visible whitespace-nowrap group"
-                        :style="getBlockStyle(block)"
+                        class="absolute top-1 bottom-1 rounded-sm flex items-center px-2 text-[10px] font-bold shadow-sm overflow-visible whitespace-nowrap group"
+                        :style="{ ...getBlockStyle(block), color: block.textColor || 'white' }"
                     >
                         {{ block.label }}
                         
