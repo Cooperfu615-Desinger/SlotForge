@@ -179,8 +179,37 @@ defineProps<{
     </div>
 
     <!-- TIMELINE -->
-    <div class="timeline-container flex-1 min-h-0 relative">
-        <TimelineView />
+    <div class="timeline-container flex-1 min-h-0 relative flex">
+        <div class="timeline-main flex-1">
+            <TimelineView />
+        </div>
+        
+        <!-- Physics Info Panel -->
+        <div class="physics-info-panel">
+            <div class="panel-header">Physics Duration</div>
+            <div class="duration-list">
+                <div class="duration-item">
+                    <span class="duration-label">Spin:</span>
+                    <span class="duration-value">{{ gameStore.currentPreset?.spinDuration || 0 }}ms</span>
+                </div>
+                <div class="duration-item">
+                    <span class="duration-label">Decelerate:</span>
+                    <span class="duration-value">{{ gameStore.currentPreset?.decelerateDuration || 0 }}ms</span>
+                </div>
+                <div class="duration-item">
+                    <span class="duration-label">Align:</span>
+                    <span class="duration-value">{{ gameStore.currentPreset?.alignDuration || 0 }}ms</span>
+                </div>
+                <div class="duration-item">
+                    <span class="duration-label">Settle:</span>
+                    <span class="duration-value">{{ gameStore.currentPreset?.settleDuration || 0 }}ms</span>
+                </div>
+                <div class="duration-item">
+                    <span class="duration-label">Interval:</span>
+                    <span class="duration-value">{{ gameStore.currentPreset?.intervalBetweenReels || 0 }}ms</span>
+                </div>
+            </div>
+        </div>
     </div>
 
   </div>
@@ -292,6 +321,66 @@ defineProps<{
     display: flex;
     overflow: hidden;
     background-color: #f9fafb; /* gray-50 */
+}
+
+.timeline-main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+/* --- PHYSICS INFO PANEL --- */
+.physics-info-panel {
+    width: 200px;
+    background-color: #ffffff;
+    border-left: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.panel-header {
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+}
+
+.duration-list {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.duration-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    background-color: #f9fafb;
+    border-radius: 4px;
+    border: 1px solid #e5e7eb;
+}
+
+.duration-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.duration-value {
+    font-size: 12px;
+    font-weight: 700;
+    color: #111827;
+    font-family: 'Monaco', 'Courier New', monospace;
 }
 
 .track-headers {
