@@ -46,29 +46,44 @@ const playheadLeft = computed(() => {
     <div class="timeline-view flex flex-col h-full bg-gray-50 select-none">
         
         <!-- Ruler -->
-        <div class="ruler h-6 border-b border-gray-200 relative bg-white">
-            <div 
-                v-for="tick in ticks" 
-                :key="tick.time"
-                class="absolute top-0 h-full border-l border-gray-300 pl-1 text-[9px] text-gray-400 select-none pointer-events-none"
-                :style="{ left: tick.left }"
-            >
-                {{ tick.label }}
-            </div>
+        <div class="ruler h-6 border-b border-gray-200 flex bg-white z-20">
+            <!-- Header Spacer -->
+            <div class="w-32 flex-shrink-0 border-r border-gray-200 h-full bg-white"></div>
             
-            <!-- Playhead Top Triangle -->
-            <div 
-                class="absolute top-0 w-3 h-3 -ml-1.5 z-20 pointer-events-none transition-transform duration-75"
-                :style="{ left: playheadLeft }"
-            >
-                <svg viewBox="0 0 10 10" class="fill-red-500 drop-shadow-sm">
-                    <path d="M0 0 L10 0 L5 8 Z" />
-                </svg>
+            <!-- Ruler Lane -->
+            <div class="flex-1 h-full relative">
+                <div 
+                    v-for="tick in ticks" 
+                    :key="tick.time"
+                    class="absolute top-0 h-full border-l border-gray-300 pl-1 text-[9px] text-gray-400 select-none pointer-events-none"
+                    :style="{ left: tick.left }"
+                >
+                    {{ tick.label }}
+                </div>
+                
+                <!-- Playhead Top Triangle -->
+                <div 
+                    class="absolute top-0 w-3 h-3 -ml-1.5 z-20 pointer-events-none transition-transform duration-75"
+                    :style="{ left: playheadLeft }"
+                >
+                    <svg viewBox="0 0 10 10" class="fill-red-500 drop-shadow-sm">
+                        <path d="M0 0 L10 0 L5 8 Z" />
+                    </svg>
+                </div>
             </div>
         </div>
 
         <!-- Tracks -->
         <div class="flex-1 overflow-y-auto overflow-x-hidden relative">
+            <!-- Global Playhead Overlay Wrapper -->
+            <!-- Positioned to match the 'flex-1' lane area (left: 128px) -->
+            <div class="absolute top-0 bottom-0 right-0 pointer-events-none z-30" style="left: 128px;">
+                <div 
+                    class="absolute top-0 bottom-0 w-px bg-red-500 shadow-[0_0_4px_rgba(239,68,68,0.5)]"
+                    :style="{ left: playheadLeft }"
+                ></div>
+            </div>
+
             <div 
                 v-for="track in store.tracks" 
                 :key="track.id"
@@ -110,11 +125,7 @@ const playheadLeft = computed(() => {
                 </div>
             </div>
 
-            <!-- Global Playhead Line (spanning all tracks) -->
-            <div 
-                class="absolute top-0 bottom-0 w-px bg-red-500 z-30 pointer-events-none shadow-[0_0_4px_rgba(239,68,68,0.5)]"
-                :style="{ left: playheadLeft, marginLeft: '128px' /* Offset by header width */ }"
-            ></div>
+
         </div>
 
     </div>
