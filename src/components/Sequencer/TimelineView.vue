@@ -76,6 +76,39 @@ const updatePlayheadPosition = (event: MouseEvent) => {
     gameStore.seekTo(newTime)
 }
 
+// --- Block Resize Logic ---
+const resizingBlockId = ref<string | null>(null)
+const resizeStartX = ref(0)
+const resizeStartDuration = ref(0)
+
+const startResize = (event: MouseEvent, blockId: string, currentDuration: number) => {
+    event.stopPropagation() // Prevent playhead drag
+    resizingBlockId.value = blockId
+    resizeStartX.value = event.clientX
+    resizeStartDuration.value = currentDuration
+    
+    document.addEventListener('mousemove', onResize)
+    document.addEventListener('mouseup', stopResize)
+}
+
+const onResize = (event: MouseEvent) => {
+    if (!resizingBlockId.value || !rulerRef.value) return
+    
+    const deltaX = event.clientX - resizeStartX.value
+    const rect = rulerRef.value.getBoundingClientRect()
+    const deltaTime = (deltaX / rect.width) * store.totalDuration
+    
+    const newDuration = resizeStartDuration.value + deltaTime
+    store.updateBlockDuration(resizingBlockId.value, newDuration)
+}
+
+const stopResize = () => {
+    resizingBlockId.value = null
+    
+    document.removeEventListener('mousemove', onResize)
+    document.removeEventListener('mouseup', stopResize)
+}
+
 </script>
 
 <template>
@@ -153,10 +186,16 @@ const updatePlayheadPosition = (event: MouseEvent) => {
                     <div 
                         v-for="block in store.blocks.filter(b => b.trackId === track.id)"
                         :key="block.id"
-                        class="absolute top-1 bottom-1 rounded-sm flex items-center px-2 text-[10px] text-white font-bold shadow-sm overflow-hidden whitespace-nowrap"
+                        class="absolute top-1 bottom-1 rounded-sm flex items-center px-2 text-[10px] text-white font-bold shadow-sm overflow-visible whitespace-nowrap group"
                         :style="getBlockStyle(block)"
                     >
                         {{ block.label }}
+                        
+                        <!-- Resize Handle -->
+                        <div 
+                            class="absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize opacity-0 group-hover:opacity-100 transition-opacity bg-white/30 hover:bg-white/50"
+                            @mousedown="startResize($event, block.id, block.duration)"
+                        ></div>
                     </div>
                 </div>
             </div>

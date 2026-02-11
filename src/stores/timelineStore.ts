@@ -16,6 +16,10 @@ export interface TimelineTrack {
     label: string
 }
 
+// Duration constraints
+const MIN_DURATION = 500  // ms
+const MAX_DURATION = 10000 // ms
+
 export const useTimelineStore = defineStore('timeline', () => {
     // State
     const currentTime = ref(0)
@@ -78,6 +82,40 @@ export const useTimelineStore = defineStore('timeline', () => {
         isPlaying.value = false
     }
 
+    /**
+     * Update block duration with constraints
+     * Automatically adjusts subsequent blocks to prevent overlap
+     */
+    const updateBlockDuration = (blockId: string, newDuration: number) => {
+        // Find the block
+        const blockIndex = blocks.value.findIndex(b => b.id === blockId)
+        if (blockIndex === -1) return
+
+        const block = blocks.value[blockIndex]
+        if (!block) return // Guard against undefined
+
+        // Apply constraints
+        const constrainedDuration = Math.max(MIN_DURATION, Math.min(MAX_DURATION, newDuration))
+
+        // Calculate the change in duration
+        const durationDelta = constrainedDuration - block.duration
+
+        // Update the block
+        block.duration = constrainedDuration
+
+        // Adjust subsequent blocks on the same track
+        for (let i = blockIndex + 1; i < blocks.value.length; i++) {
+            const subsequentBlock = blocks.value[i]
+            if (subsequentBlock && subsequentBlock.trackId === block.trackId) {
+                subsequentBlock.start += durationDelta
+            }
+        }
+
+        // Update total duration if needed
+        const maxEnd = Math.max(...blocks.value.map(b => b.start + b.duration))
+        totalDuration.value = Math.max(5000, maxEnd + 1000)
+    }
+
     return {
         currentTime,
         totalDuration,
@@ -86,6 +124,7 @@ export const useTimelineStore = defineStore('timeline', () => {
         blocks,
         setTime,
         generateFromPreset,
-        reset
+        reset,
+        updateBlockDuration
     }
 })
