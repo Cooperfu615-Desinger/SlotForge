@@ -170,27 +170,22 @@ const wayRects = computed(() => {
         <!-- Layer 2: Win Rollup UI (Backdrop + Text) -->
         <div 
             v-if="gameStore.winState !== 'IDLE'" 
-            class="relative z-50 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm w-full h-full -translate-y-5"
+            class="relative z-50 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm w-full h-full"
         >
-            <!-- 1. Image / Fallback (Animated) -->
+            <!-- 1. Image / Fallback (Animated) - Centered in viewport -->
             <transition name="pop" mode="out-in">
                 <div 
                     :key="currentTier"
-                    class="asset-container flex-shrink-0 flex items-center justify-center shadow-2xl rounded-xl overflow-hidden"
+                    class="w-[85%] h-auto shrink-0 max-w-[900px] flex items-center justify-center shadow-2xl rounded-xl overflow-hidden"
                     :style="{ 
-                        width: '85%',
-                        maxWidth: '900px',
-                        height: 'auto',
                         backgroundColor: currentAsset ? 'transparent' : fallbackColor,
-                        border: currentAsset ? 'none' : '4px solid white',
-                        padding: '0',
-                        margin: '0'
+                        border: currentAsset ? 'none' : '4px solid white'
                     }"
                 >
                     <img 
                         v-if="currentAsset" 
                         :src="currentAsset" 
-                        style="width: 100%; height: auto; object-fit: contain; display: block;"
+                        class="w-full h-auto object-contain"
                     />
                     <div v-else class="text-white text-6xl font-black italic tracking-tighter uppercase drop-shadow-md py-24">
                         {{ getTierLabel(currentTier) }}
@@ -198,13 +193,17 @@ const wayRects = computed(() => {
                 </div>
             </transition>
 
-            <!-- 2. Rollup Number (Dynamic Position) -->
-            <div class="mt-3 text-[10rem] leading-none font-black text-white tracking-wide drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
-                {{ formattedAmount }}
-            </div>
+            <!-- 2. Score & Skip Button (Absolute Positioned) -->
+            <div class="absolute bottom-[12%] left-0 w-full flex flex-col items-center justify-center gap-2 z-60">
+                <!-- Rollup Number -->
+                <div class="text-[10rem] leading-none font-black text-white tracking-wide drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
+                    {{ formattedAmount }}
+                </div>
 
-            <div class="mt-2 text-white/70 text-xl font-bold uppercase tracking-widest animate-pulse">
-                Tap to Skip
+                <!-- Skip Hint -->
+                <div class="text-white/70 text-xl font-bold uppercase tracking-widest animate-pulse">
+                    Tap to Skip
+                </div>
             </div>
 
         </div>
