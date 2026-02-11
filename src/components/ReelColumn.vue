@@ -79,8 +79,10 @@ watch(() => gameStore.gameState, (newState) => {
     // Global stop trigger (if needed, currently handled by timeouts/controller usually)
     // If we wanted to force stop manually:
     // reelController.stop()
-  } else if (newState === 'IDLE' ) {
-      // Potentially reset if coming from a hard stop?
+  } else if (newState === 'IDLE') {
+    // Reset reel when returning to IDLE (e.g., when user clicks stop button)
+    console.log(`[ReelColumn ${props.reelId}] Resetting to IDLE`)
+    reelController.reset()
   }
 })
 
