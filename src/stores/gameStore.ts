@@ -359,7 +359,7 @@ export const useGameStore = defineStore('game', () => {
         currentLines,
         setLines,
         isSequencerEnabled,
-        gameState,
+
         showGrid,
         toggleGrid,
         winDuration,

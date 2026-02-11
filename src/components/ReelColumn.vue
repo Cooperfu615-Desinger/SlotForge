@@ -153,7 +153,7 @@ const updateReelPosition = (time: number) => {
         const timeInPhase = time - tSpin
         const durationInSec = tDec / 1000
         
-        const avgSpeed = (MAX_SPEED + ALIGN_SPEED) / 2
+
         
         if (durationInSec > 0) {
             const accel = (ALIGN_SPEED - MAX_SPEED) / durationInSec
