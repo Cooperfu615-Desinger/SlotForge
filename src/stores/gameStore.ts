@@ -314,6 +314,18 @@ export const useGameStore = defineStore('game', () => {
         isSeeking.value = false
     }
 
+    /**
+     * Update spin duration based on timeline block edits
+     * This ensures reel animation speed matches the edited timeline
+     */
+    const updateSpinDuration = (newDuration: number) => {
+        // Update the current preset's spinDuration
+        const preset = SPEED_PRESETS[currentSpeedMode.value]
+        if (preset) {
+            preset.spinDuration = newDuration
+        }
+    }
+
     return {
         gameState,
         isSpinning,
@@ -356,6 +368,7 @@ export const useGameStore = defineStore('game', () => {
         seekTime,
         isSeeking,
         seekTo,
-        stopSeeking
+        stopSeeking,
+        updateSpinDuration
     }
 })

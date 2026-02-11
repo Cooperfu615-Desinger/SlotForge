@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { SPEED_PRESETS, type SpeedMode } from './gameStore'
+import { SPEED_PRESETS, type SpeedMode, useGameStore } from './gameStore'
 
 export interface TimelineBlock {
     id: string
@@ -114,6 +114,10 @@ export const useTimelineStore = defineStore('timeline', () => {
         // Update total duration if needed
         const maxEnd = Math.max(...blocks.value.map(b => b.start + b.duration))
         totalDuration.value = Math.max(5000, maxEnd + 1000)
+
+        // Sync with gameStore preset to update reel animation speed
+        const gameStore = useGameStore()
+        gameStore.updateSpinDuration(constrainedDuration)
     }
 
     return {
