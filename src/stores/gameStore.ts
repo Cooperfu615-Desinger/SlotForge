@@ -102,6 +102,10 @@ export const useGameStore = defineStore('game', () => {
     const currentWinTier = ref<string>('win_small') // Track current tier explicitly
     let winTweenRequest: number | null = null
 
+    // FX State
+    const winEffect = ref<'IDLE' | 'LINE' | 'WAY'>('IDLE')
+    const winEffectData = ref<number[]>([]) // Indices of symbols involved
+
     // Actions
     const startSpin = () => {
         if (gameState.value !== 'IDLE') {
@@ -303,6 +307,22 @@ export const useGameStore = defineStore('game', () => {
         winState,
         currentWinTier,
         triggerWin,
-        killWinAnimation
+        killWinAnimation,
+        winEffect,
+        winEffectData,
+        triggerWinEffect: (type: 'LINE' | 'WAY', data: number[]) => {
+            console.log(`[GameStore] Trigger Win Effect: ${type}`, data)
+            winEffect.value = type
+            winEffectData.value = data
+
+            // Auto-clear after 3s (simulation)
+            setTimeout(() => {
+                // Only clear if still matching (user might have clicked another)
+                if (winEffect.value === type) {
+                    winEffect.value = 'IDLE'
+                    winEffectData.value = []
+                }
+            }, 3000)
+        }
     }
 })

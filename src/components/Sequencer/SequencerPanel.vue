@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { useGameStore, type SpeedMode } from '../../stores/gameStore'
+import { useManifestStore } from '../../stores/manifest'
 
 const gameStore = useGameStore()
+const manifestStore = useManifestStore()
 
 // --- Actions (Mock & Real) ---
 
@@ -22,8 +24,34 @@ const triggerWin = (amount: number) => {
   gameStore.triggerWin(amount)
 }
 
-const triggerAction = (actionName: string) => {
-  console.log(`Trigger: [${actionName}]`)
+const triggerLineFX = () => {
+    // Determine indices based on grid size (3x3 vs 5x3)
+    // Default to diagonal down
+    const { rows, cols } = manifestStore.gridConfig
+    const indices: number[] = []
+    
+    // Create a V-shape or Diagonal
+    for (let c = 0; c < cols; c++) {
+        // Diagonal: Row = c % rows
+        // Index = col * rows + row
+        const r = c % rows
+        indices.push(c * rows + r)
+    }
+    
+    gameStore.triggerWinEffect('LINE', indices)
+}
+
+const triggerWayFX = () => {
+     // X Shape or first column
+     const { rows, cols } = manifestStore.gridConfig
+     // Highlight first 2 columns fully
+     const indices: number[] = []
+     for (let c = 0; c < Math.min(cols, 2); c++) {
+         for (let r = 0; r < rows; r++) {
+             indices.push(c * rows + r)
+         }
+     }
+     gameStore.triggerWinEffect('WAY', indices)
 }
 
 // Duration Binding
@@ -99,8 +127,8 @@ defineProps<{
         <div class="tool-group">
             <div class="group-label">FX TEST</div>
             <div class="btn-row">
-                <button class="btn" @click="triggerAction('Line FX')">Line</button>
-                <button class="btn" @click="triggerAction('Way FX')">Way</button>
+                <button class="btn" @click="triggerLineFX">Line</button>
+                <button class="btn" @click="triggerWayFX">Way</button>
             </div>
         </div>
     </div>
