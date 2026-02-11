@@ -173,6 +173,21 @@ export const useReelController = (config: ReelConfig, onAllReelsStopped?: () => 
         speed.value = 0
     }
 
+    /**
+     * Seek to Position (for timeline scrubbing)
+     */
+    const seekToPosition = (targetPosition: number) => {
+        // Kill any active tweens
+        killTweens()
+
+        // Directly set position
+        position.value = targetPosition
+        speed.value = 0
+
+        // Set status to IDLE
+        status.value = 'IDLE'
+    }
+
     return {
         status,
         position,
@@ -181,6 +196,7 @@ export const useReelController = (config: ReelConfig, onAllReelsStopped?: () => 
         spin,
         stop,
         instantStop,
-        reset
+        reset,
+        seekToPosition
     }
 }

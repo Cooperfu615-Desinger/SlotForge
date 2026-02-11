@@ -110,6 +110,26 @@ watch(() => gameStore.gameState, (v) => {
     }
 })
 
+// Watch for seek events (timeline scrubbing)
+watch(() => gameStore.seekTime, (newTime) => {
+    if (!gameStore.isSeeking) return
+    
+    // Calculate position based on timestamp
+    // Simple linear mapping: position = (time / totalDuration) * totalDistance
+    const preset = gameStore.currentPreset
+    const totalDuration = preset.spinDuration
+    
+    if (totalDuration === 0) return // Avoid division by zero
+    
+    const progress = Math.min(newTime / totalDuration, 1)
+    
+    // Assume reels travel ~10 symbols during spin
+    const totalDistance = props.symbolHeight * 10
+    const targetPosition = progress * totalDistance
+    
+    reelController.seekToPosition(targetPosition)
+})
+
 // For the "Click STOP" requirement:
 // We need to Expose `stop` or have the parent call it.
 // Currently `ReelColumn` is a component.
