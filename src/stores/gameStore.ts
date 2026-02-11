@@ -150,7 +150,6 @@ export const useGameStore = defineStore('game', () => {
     // Win Demo Actions
     const triggerWin = (amount: number) => {
         if (winState.value !== 'IDLE') {
-            // Cancel existing
             if (winTweenRequest) cancelAnimationFrame(winTweenRequest)
         }
 
@@ -159,29 +158,104 @@ export const useGameStore = defineStore('game', () => {
         currentWinAmount.value = 0
         winState.value = 'ROLLUP'
 
+        // 1. Determine Phases
+        // If amount < 1000, just do a quick generic spin (Small Win)
+        if (amount < 1000) {
+            currentWinTier.value = 'win_small'
+            runSimpleTween(0, amount, 1500) // 1.5s for small win
+            return
+        }
+
+        // Build Sequence
+        const sequence: { start: number, end: number, tier: string }[] = []
+
+        // Phase 1: 0 -> 5000 (Big)
+        sequence.push({ start: 0, end: Math.min(amount, 5000), tier: 'win_big' })
+
+        // Phase 2: 5000 -> 20000 (Mega)
+        if (amount > 5000) {
+            sequence.push({ start: 5000, end: Math.min(amount, 20000), tier: 'win_mega' })
+        }
+
+        // Phase 3: 20000 -> 50000 (Super)
+        if (amount > 20000) {
+            sequence.push({ start: 20000, end: Math.min(amount, 50000), tier: 'win_super' })
+        }
+
+        // Phase 4: > 50000 (Epic)
+        if (amount > 50000) {
+            sequence.push({ start: 50000, end: amount, tier: 'win_epic' })
+        }
+
+        // Execute Sequence
+        runSequentialTween(sequence)
+    }
+
+    const runSimpleTween = (start: number, end: number, duration: number) => {
         const startTime = performance.now()
-        const startVal = 0
-        const endVal = amount
-        const duration = winDuration.value
 
         const animate = (currentTime: number) => {
             const elapsed = currentTime - startTime
             const progress = Math.min(elapsed / duration, 1)
+            const ease = 1 - Math.pow(1 - progress, 4) // Ease Out Quart
 
-            // Ease Out Quart
-            const ease = 1 - Math.pow(1 - progress, 4)
-
-            currentWinAmount.value = Math.floor(startVal + (endVal - startVal) * ease)
+            currentWinAmount.value = Math.floor(start + (end - start) * ease)
 
             if (progress < 1) {
                 winTweenRequest = requestAnimationFrame(animate)
             } else {
-                currentWinAmount.value = endVal
+                currentWinAmount.value = end
                 winState.value = 'COMPLETED'
                 winTweenRequest = null
             }
         }
+        winTweenRequest = requestAnimationFrame(animate)
+    }
 
+    const runSequentialTween = (sequence: { start: number, end: number, tier: string }[]) => {
+        let phaseIndex = 0
+        const durationPerPhase = 2000 // 2s per phase
+        let phaseStartTime = performance.now()
+
+        const animate = (currentTime: number) => {
+            const phase = sequence[phaseIndex]
+            if (!phase) return
+
+            // Sync Tier
+            if (currentWinTier.value !== phase.tier) {
+                currentWinTier.value = phase.tier
+            }
+
+            const elapsed = currentTime - phaseStartTime
+            const progress = Math.min(elapsed / durationPerPhase, 1)
+
+            // Ease Out Quart for each phase
+            const ease = 1 - Math.pow(1 - progress, 4)
+
+            currentWinAmount.value = Math.floor(phase.start + (phase.end - phase.start) * ease)
+
+            if (progress < 1) {
+                winTweenRequest = requestAnimationFrame(animate)
+            } else {
+                // Phase Complete
+                currentWinAmount.value = phase.end
+                phaseIndex++
+
+                if (phaseIndex < sequence.length) {
+                    // Next Phase
+                    phaseStartTime = performance.now()
+                    winTweenRequest = requestAnimationFrame(animate)
+                } else {
+                    // All Done
+                    winState.value = 'COMPLETED'
+                    winTweenRequest = null
+                }
+            }
+        }
+
+        // Set initial tier
+        if (sequence.length > 0) currentWinTier.value = sequence[0].tier
+        phaseStartTime = performance.now()
         winTweenRequest = requestAnimationFrame(animate)
     }
 
@@ -189,6 +263,13 @@ export const useGameStore = defineStore('game', () => {
         if (winState.value === 'ROLLUP') {
             if (winTweenRequest) cancelAnimationFrame(winTweenRequest)
             currentWinAmount.value = targetWinAmount.value
+
+            // Set final tier based on target
+            if (targetWinAmount.value >= 50000) currentWinTier.value = 'win_epic'
+            else if (targetWinAmount.value >= 20000) currentWinTier.value = 'win_super'
+            else if (targetWinAmount.value >= 5000) currentWinTier.value = 'win_mega'
+            else if (targetWinAmount.value >= 0) currentWinTier.value = 'win_big'
+
             winState.value = 'COMPLETED'
         } else if (winState.value === 'COMPLETED') {
             winState.value = 'IDLE'
