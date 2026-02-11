@@ -106,6 +106,10 @@ export const useGameStore = defineStore('game', () => {
     const winEffect = ref<'IDLE' | 'LINE' | 'WAY'>('IDLE')
     const winEffectData = ref<number[]>([]) // Indices of symbols involved
 
+    // Seek State (for timeline scrubbing)
+    const seekTime = ref<number>(0) // Current timeline position in ms
+    const isSeeking = ref(false) // True when user is dragging playhead
+
     // Actions
     const startSpin = () => {
         if (gameState.value !== 'IDLE') {
@@ -285,6 +289,31 @@ export const useGameStore = defineStore('game', () => {
         }
     }
 
+    /**
+     * Seek to specific timeline position
+     * Calculates reel offset and win presentation state based on timestamp
+     */
+    const seekTo = (timestamp: number) => {
+        seekTime.value = timestamp
+        isSeeking.value = true
+
+        // Calculate win presentation opacity/amount
+        // If we're in a win animation, calculate the current amount based on timestamp
+        if (winState.value === 'ROLLUP' && targetWinAmount.value > 0) {
+            // Simple linear interpolation for now
+            const totalDuration = winDuration.value * 4 // Assuming 4 phases max
+            const progress = Math.min(timestamp / totalDuration, 1)
+            currentWinAmount.value = targetWinAmount.value * progress
+        }
+    }
+
+    /**
+     * Stop seeking (resume normal playback)
+     */
+    const stopSeeking = () => {
+        isSeeking.value = false
+    }
+
     return {
         gameState,
         isSpinning,
@@ -323,6 +352,10 @@ export const useGameStore = defineStore('game', () => {
                     winEffectData.value = []
                 }
             }, 3000)
-        }
+        },
+        seekTime,
+        isSeeking,
+        seekTo,
+        stopSeeking
     }
 })

@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useTimelineStore } from '../../stores/timelineStore'
+import { useGameStore } from '../../stores/gameStore'
 
 const store = useTimelineStore()
+const gameStore = useGameStore()
 
 // --- Ruler Logic ---
 const ticks = computed(() => {
@@ -36,9 +38,43 @@ const playheadLeft = computed(() => {
     return (store.currentTime / store.totalDuration) * 100 + '%'
 })
 
-// --- Interaction (Scrubbing - Optional for now) ---
-// We can add click-to-seek later if needed based on "Scrubbing" request?
-// For now user asked for "Visual" only.
+// --- Playhead Dragging ---
+const isDragging = ref(false)
+const rulerRef = ref<HTMLElement | null>(null)
+
+const startDrag = (event: MouseEvent) => {
+    isDragging.value = true
+    gameStore.isSeeking = true // Pause auto-play
+    updatePlayheadPosition(event)
+    
+    document.addEventListener('mousemove', onDrag)
+    document.addEventListener('mouseup', stopDrag)
+}
+
+const onDrag = (event: MouseEvent) => {
+    if (!isDragging.value) return
+    updatePlayheadPosition(event)
+}
+
+const stopDrag = () => {
+    isDragging.value = false
+    gameStore.stopSeeking()
+    
+    document.removeEventListener('mousemove', onDrag)
+    document.removeEventListener('mouseup', stopDrag)
+}
+
+const updatePlayheadPosition = (event: MouseEvent) => {
+    if (!rulerRef.value) return
+    
+    const rect = rulerRef.value.getBoundingClientRect()
+    const x = event.clientX - rect.left
+    const percentage = Math.max(0, Math.min(1, x / rect.width))
+    const newTime = percentage * store.totalDuration
+    
+    store.setTime(newTime)
+    gameStore.seekTo(newTime)
+}
 
 </script>
 
@@ -51,7 +87,7 @@ const playheadLeft = computed(() => {
             <div class="w-32 flex-shrink-0 border-r border-gray-200 h-full bg-white"></div>
             
             <!-- Ruler Lane -->
-            <div class="flex-1 h-full relative min-w-[1000px]">
+            <div ref="rulerRef" class="flex-1 h-full relative min-w-[1000px] cursor-pointer" @mousedown="startDrag">
                 <div 
                     v-for="tick in ticks" 
                     :key="tick.time"

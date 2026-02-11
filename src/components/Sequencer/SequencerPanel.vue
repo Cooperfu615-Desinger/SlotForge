@@ -16,14 +16,9 @@ const setSpeed = (mode: SpeedMode) => {
   gameStore.setSpeed(mode)
   timelineStore.generateFromPreset(mode) // Update Timeline
   console.log(`Trigger: Set Speed ${mode}`)
-}
-
-const handleMainButton = () => {
-  if (gameStore.isSpinning) {
-    gameStore.stopSpin()
-  } else {
-    gameStore.startSpin()
-  }
+  
+  // Auto-play: Start spin immediately
+  gameStore.startSpin()
 }
 
 const triggerWin = (amount: number) => {
@@ -129,9 +124,7 @@ defineProps<{
                     <button class="btn" :class="{ active: gameStore.currentSpeedMode === 'fast' }" @click="setSpeed('fast')">2x</button>
                     <button class="btn" :class="{ active: gameStore.currentSpeedMode === 'instant' }" @click="setSpeed('instant')">3x</button>
                 </div>
-                <button class="btn action-btn text-bold" :class="{ active: gameStore.isSpinning }" @click="handleMainButton">
-                    {{ gameStore.isSpinning ? 'STOP' : 'SPIN' }}
-                </button>
+
             </div>
         </div>
 
