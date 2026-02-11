@@ -170,37 +170,40 @@ const wayRects = computed(() => {
         <!-- Layer 2: Win Rollup UI (Backdrop + Text) -->
         <div 
             v-if="gameStore.winState !== 'IDLE'" 
-            class="relative z-50 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm w-full h-full"
+            class="relative z-50 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm w-full h-full -translate-y-5"
         >
             <!-- 1. Image / Fallback (Animated) -->
             <transition name="pop" mode="out-in">
                 <div 
                     :key="currentTier"
-                    class="asset-container flex items-center justify-center shadow-2xl rounded-xl overflow-hidden"
+                    class="asset-container flex-shrink-0 flex items-center justify-center shadow-2xl rounded-xl overflow-hidden"
                     :style="{ 
-                        width: '600px', 
-                        height: '300px',
+                        width: '85%',
+                        maxWidth: '900px',
+                        height: 'auto',
                         backgroundColor: currentAsset ? 'transparent' : fallbackColor,
-                        border: currentAsset ? 'none' : '4px solid white'
+                        border: currentAsset ? 'none' : '4px solid white',
+                        padding: '0',
+                        margin: '0'
                     }"
                 >
                     <img 
                         v-if="currentAsset" 
                         :src="currentAsset" 
-                        class="w-full h-full object-contain"
+                        style="width: 100%; height: auto; object-fit: contain; display: block;"
                     />
-                    <div v-else class="text-white text-6xl font-black italic tracking-tighter uppercase drop-shadow-md">
+                    <div v-else class="text-white text-6xl font-black italic tracking-tighter uppercase drop-shadow-md py-24">
                         {{ getTierLabel(currentTier) }}
                     </div>
                 </div>
             </transition>
 
-            <!-- 2. Rollup Number (Static Position) -->
-            <div class="mt-8 text-[10rem] leading-none font-black text-white tracking-wide drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
+            <!-- 2. Rollup Number (Dynamic Position) -->
+            <div class="mt-3 text-[10rem] leading-none font-black text-white tracking-wide drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
                 {{ formattedAmount }}
             </div>
 
-            <div class="mt-4 text-white/70 text-xl font-bold uppercase tracking-widest animate-pulse">
+            <div class="mt-2 text-white/70 text-xl font-bold uppercase tracking-widest animate-pulse">
                 Tap to Skip
             </div>
 
