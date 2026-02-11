@@ -6,6 +6,12 @@ import { useGameStore } from '../../stores/gameStore'
 const store = useTimelineStore()
 const gameStore = useGameStore()
 
+// --- Contextual Track Filtering ---
+// Timeline is specifically for reel physics tuning, so we only show reel tracks
+const visibleTracks = computed(() => {
+    return store.tracks.filter(track => track.id.startsWith('reel'))
+})
+
 // --- Ruler Logic ---
 const ticks = computed(() => {
     const totalMs = store.totalDuration
@@ -154,7 +160,7 @@ const stopResize = () => {
             </div>
 
             <div 
-                v-for="track in store.tracks" 
+                v-for="track in visibleTracks" 
                 :key="track.id"
                 class="track-row h-8 border-b border-gray-200 relative flex items-center bg-gray-50/50 hover:bg-white transition-colors"
             >
