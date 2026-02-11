@@ -8,14 +8,7 @@ const forgeStore = useForgeStore()
 
 // --- Tier Logic ---
 const currentTier = computed(() => {
-    // If target is small, stick to small
-    if (gameStore.targetWinAmount < 1000) return 'win_small'
-
-    const amt = gameStore.currentWinAmount
-    if (amt >= 50000) return 'win_epic'
-    if (amt >= 20000) return 'win_super'
-    if (amt >= 5000) return 'win_mega'
-    return 'win_big' // Start from Big for >= 1000
+    return gameStore.currentWinTier
 })
 
 // --- Asset Resolution ---
@@ -117,7 +110,8 @@ const formattedAmount = computed(() => {
 }
 
 @keyframes pop-in {
-    0% { transform: scale(0.5); opacity: 0; }
+    0% { transform: scale(0); opacity: 0; }
+    50% { opacity: 1; }
     100% { transform: scale(1); opacity: 1; }
 }
 

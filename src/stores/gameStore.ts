@@ -95,10 +95,11 @@ export const useGameStore = defineStore('game', () => {
     const currentLines = ref<number>(25)
 
     // Win Demo State
-    const winDuration = ref(2000)
+    const winDuration = ref(2000) // Base duration per tier
     const currentWinAmount = ref(0)
     const targetWinAmount = ref(0)
     const winState = ref<WinState>('IDLE')
+    const currentWinTier = ref<string>('win_small') // Track current tier explicitly
     let winTweenRequest: number | null = null
 
     // Actions
@@ -215,6 +216,7 @@ export const useGameStore = defineStore('game', () => {
         currentWinAmount,
         targetWinAmount,
         winState,
+        currentWinTier,
         triggerWin,
         killWinAnimation
     }
