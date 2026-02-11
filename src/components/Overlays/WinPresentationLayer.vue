@@ -59,12 +59,12 @@ const formattedAmount = computed(() => {
         class="win-presentation-layer absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm cursor-pointer"
         @click="handleClick"
     >
-        <!-- Scale Transition Wrapper -->
-        <transition name="pop" appear>
-            <div :key="currentTier" class="relative flex flex-col items-center justify-center">
-                
-                <!-- 1. Image / Fallback -->
+        <div class="relative flex flex-col items-center justify-center">
+            
+            <!-- 1. Image / Fallback (Animated) -->
+            <transition name="pop" mode="out-in">
                 <div 
+                    :key="currentTier"
                     class="asset-container flex items-center justify-center shadow-2xl rounded-xl overflow-hidden"
                     :style="{ 
                         width: '600px', 
@@ -82,18 +82,18 @@ const formattedAmount = computed(() => {
                         {{ getTierLabel(currentTier) }}
                     </div>
                 </div>
+            </transition>
 
-                <!-- 2. Rollup Number -->
-                <div class="mt-8 text-7xl font-black text-white tracking-wide drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] score-text">
-                    {{ formattedAmount }}
-                </div>
-
-                <div class="mt-4 text-white/70 text-sm font-bold uppercase tracking-widest animate-pulse">
-                    Tap to Skip
-                </div>
-
+            <!-- 2. Rollup Number (Static Position) -->
+            <div class="mt-8 text-7xl font-black text-white tracking-wide drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] score-text">
+                {{ formattedAmount }}
             </div>
-        </transition>
+
+            <div class="mt-4 text-white/70 text-sm font-bold uppercase tracking-widest animate-pulse">
+                Tap to Skip
+            </div>
+
+        </div>
     </div>
 </template>
 
@@ -103,15 +103,11 @@ const formattedAmount = computed(() => {
 }
 
 .pop-leave-active {
-    transition: opacity 0.2s;
-}
-.pop-leave-to {
-    opacity: 0;
+    animation: pop-in 0.2s reverse;
 }
 
 @keyframes pop-in {
     0% { transform: scale(0); opacity: 0; }
-    50% { opacity: 1; }
     100% { transform: scale(1); opacity: 1; }
 }
 
