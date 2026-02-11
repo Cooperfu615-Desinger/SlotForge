@@ -213,50 +213,53 @@ export const useGameStore = defineStore('game', () => {
     }
 
     const runSequentialTween = (sequence: { start: number, end: number, tier: string }[]) => {
-        let phaseIndex = 0
-        const durationPerPhase = 2000 // 2s per phase
-        let phaseStartTime = performance.now()
+        if (sequence.length === 0) return // Safety check
+
+        let startTime: number | null = null
+        const DURATION_PER_PHASE = 2000 // 2s per phase
 
         const animate = (currentTime: number) => {
-            const phase = sequence[phaseIndex]
-            if (!phase) return
+            if (startTime === null) startTime = currentTime
+            const totalElapsed = currentTime - startTime
+
+            // Calculate which phase we are in (0, 1, 2...)
+            let phaseIndex = Math.floor(totalElapsed / DURATION_PER_PHASE)
+
+            // Clamp to valid range
+            if (phaseIndex >= sequence.length) {
+                // Animation Complete
+                const lastPhase = sequence[sequence.length - 1]!
+                currentWinAmount.value = lastPhase.end
+                currentWinTier.value = lastPhase.tier
+                winState.value = 'COMPLETED'
+                winTweenRequest = null
+                return
+            }
+
+            const currentPhase = sequence[phaseIndex]
+            if (!currentPhase) return // TS Safety
 
             // Sync Tier
-            if (currentWinTier.value !== phase.tier) {
-                currentWinTier.value = phase.tier
+            if (currentWinTier.value !== currentPhase.tier) {
+                currentWinTier.value = currentPhase.tier
             }
 
-            const elapsed = currentTime - phaseStartTime
-            const progress = Math.min(elapsed / durationPerPhase, 1)
+            // Calculate progress within current phase (0.0 to 1.0)
+            const phaseProgress = (totalElapsed % DURATION_PER_PHASE) / DURATION_PER_PHASE
 
-            // Ease Out Quart only for the last phase, Linear for others to ensure continuous motion
+            // Logic: 
+            // - Last Phase: Ease Out Quart for smooth stop
+            // - Intermediate Phases: Linear for continuous momentum (no pause)
             const isLastPhase = phaseIndex === sequence.length - 1
-            const ease = isLastPhase ? (1 - Math.pow(1 - progress, 4)) : progress
+            const ease = isLastPhase ? (1 - Math.pow(1 - phaseProgress, 4)) : phaseProgress
 
-            currentWinAmount.value = Math.floor(phase.start + (phase.end - phase.start) * ease)
+            currentWinAmount.value = Math.floor(currentPhase.start + (currentPhase.end - currentPhase.start) * ease)
 
-            if (progress < 1) {
-                winTweenRequest = requestAnimationFrame(animate)
-            } else {
-                // Phase Complete
-                currentWinAmount.value = phase.end
-                phaseIndex++
-
-                if (phaseIndex < sequence.length) {
-                    // Next Phase
-                    phaseStartTime = performance.now()
-                    winTweenRequest = requestAnimationFrame(animate)
-                } else {
-                    // All Done
-                    winState.value = 'COMPLETED'
-                    winTweenRequest = null
-                }
-            }
+            winTweenRequest = requestAnimationFrame(animate)
         }
 
         // Set initial tier
-        if (sequence.length > 0) currentWinTier.value = sequence[0].tier
-        phaseStartTime = performance.now()
+        currentWinTier.value = sequence[0]!.tier
         winTweenRequest = requestAnimationFrame(animate)
     }
 
