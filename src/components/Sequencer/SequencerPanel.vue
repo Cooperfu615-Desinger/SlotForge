@@ -1,14 +1,20 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted, watch } from 'vue'
 import { useGameStore, type SpeedMode } from '../../stores/gameStore'
 import { useManifestStore } from '../../stores/manifest'
+import { useTimelineStore } from '../../stores/timelineStore'
+import TimelineView from './TimelineView.vue'
+import gsap from 'gsap' // Using GSAP for ticker as requested
 
 const gameStore = useGameStore()
 const manifestStore = useManifestStore()
+const timelineStore = useTimelineStore()
 
 // --- Actions (Mock & Real) ---
 
 const setSpeed = (mode: SpeedMode) => {
   gameStore.setSpeed(mode)
+  timelineStore.generateFromPreset(mode) // Update Timeline
   console.log(`Trigger: Set Speed ${mode}`)
 }
 
@@ -62,8 +68,46 @@ const updateWinDuration = (e: Event) => {
   }
 }
 
-// --- Timeline Data ---
-const tracks = ['Global', 'Reel 1', 'Reel 2', 'Reel 3', 'Reel 4', 'Reel 5', 'Audio/FX']
+// --- Playback Synchronization ---
+let startTime = 0
+
+const tick = (_time: number, _deltaTime: number, _frame: number) => {
+    if (!gameStore.isSpinning) return
+
+    // GSAP ticker gives time in seconds, we need ms relative to start
+    // But ticker time is global. 
+    // Easier: use performance.now() captured at start
+    const now = performance.now()
+    const elapsed = now - startTime
+    
+    timelineStore.setTime(elapsed)
+}
+
+// Watch Game State
+watch(() => gameStore.gameState, (newState) => {
+    if (newState === 'SPINNING') {
+        startTime = performance.now()
+        // Start Ticker
+        gsap.ticker.add(tick)
+    } else {
+        // Stop Ticker
+        gsap.ticker.remove(tick)
+        // Ensure playhead resets or jumps to end?
+        // User behavior: "Click 1x... Playhead should move... until end"
+        // If we stop manually, it just stops.
+        // If it stops automatically, it reaches end.
+    }
+})
+
+// Init with current speed preset
+onMounted(() => {
+    timelineStore.generateFromPreset(gameStore.currentSpeedMode)
+})
+
+onUnmounted(() => {
+    gsap.ticker.remove(tick)
+})
+
 
 defineProps<{
     embedded?: boolean
@@ -134,18 +178,8 @@ defineProps<{
     </div>
 
     <!-- TIMELINE -->
-    <div class="timeline-container flex-1 min-h-0">
-        <div class="track-headers">
-            <div class="header-item placeholder"></div>
-            <div v-for="track in tracks" :key="track" class="header-item">{{ track }}</div>
-        </div>
-        <div class="track-lanes">
-            <div class="ruler">
-                <span v-for="i in 20" :key="i" class="tick" :style="{ left: (i * 50) + 'px' }">{{ (i * 0.5).toFixed(1) }}s</span>
-                <div class="playhead"></div>
-            </div>
-            <div v-for="track in tracks" :key="'lane-'+track" class="lane"></div>
-        </div>
+    <div class="timeline-container flex-1 min-h-0 relative">
+        <TimelineView />
     </div>
 
   </div>
