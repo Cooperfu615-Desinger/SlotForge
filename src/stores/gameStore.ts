@@ -229,8 +229,9 @@ export const useGameStore = defineStore('game', () => {
             const elapsed = currentTime - phaseStartTime
             const progress = Math.min(elapsed / durationPerPhase, 1)
 
-            // Ease Out Quart for each phase
-            const ease = 1 - Math.pow(1 - progress, 4)
+            // Ease Out Quart only for the last phase, Linear for others to ensure continuous motion
+            const isLastPhase = phaseIndex === sequence.length - 1
+            const ease = isLastPhase ? (1 - Math.pow(1 - progress, 4)) : progress
 
             currentWinAmount.value = Math.floor(phase.start + (phase.end - phase.start) * ease)
 

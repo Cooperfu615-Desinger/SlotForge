@@ -85,11 +85,12 @@ const formattedAmount = computed(() => {
             </transition>
 
             <!-- 2. Rollup Number (Static Position) -->
-            <div class="mt-8 text-7xl font-black text-white tracking-wide drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] score-text">
+            <!-- Removed stroke, doubled size (text-9xl+) -->
+            <div class="mt-8 text-[10rem] leading-none font-black text-white tracking-wide drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
                 {{ formattedAmount }}
             </div>
 
-            <div class="mt-4 text-white/70 text-sm font-bold uppercase tracking-widest animate-pulse">
+            <div class="mt-4 text-white/70 text-xl font-bold uppercase tracking-widest animate-pulse">
                 Tap to Skip
             </div>
 
@@ -109,10 +110,5 @@ const formattedAmount = computed(() => {
 @keyframes pop-in {
     0% { transform: scale(0); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
-}
-
-/* Stroke effect for text */
-.score-text {
-    -webkit-text-stroke: 2px black;
 }
 </style>
