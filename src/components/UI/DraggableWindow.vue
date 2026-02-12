@@ -8,6 +8,7 @@ const props = defineProps<{
     width?: string
     zIndex?: number
     resizable?: boolean // Optional: enable resize functionality
+    initiallyCollapsed?: boolean // Optional: default collapsed state
 }>()
 
 const emit = defineEmits<{
@@ -16,7 +17,7 @@ const emit = defineEmits<{
 }>()
 
 // State
-const isCollapsed = ref(false)
+const isCollapsed = ref(props.initiallyCollapsed || false)
 const position = ref({ x: props.initialX, y: props.initialY })
 const isDragging = ref(false)
 const dragStart = ref({ x: 0, y: 0 })

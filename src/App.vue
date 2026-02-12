@@ -122,6 +122,7 @@ const stopPanning = () => {
             :initialY="20" 
             width="320px"
             :zIndex="zIndices.inspector"
+            :initiallyCollapsed="true"
             @focus="bringToFront('inspector')"
         >
             <Sidebar />
@@ -135,6 +136,7 @@ const stopPanning = () => {
             width="1100px"
             :zIndex="zIndices.sequencer"
             :resizable="true"
+            :initiallyCollapsed="true"
             @focus="bringToFront('sequencer')"
         >
             <SequencerPanel :embedded="true" />
