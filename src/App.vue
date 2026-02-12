@@ -134,6 +134,7 @@ const stopPanning = () => {
             :initialY="sequencerInitialY" 
             width="1100px"
             :zIndex="zIndices.sequencer"
+            :resizable="true"
             @focus="bringToFront('sequencer')"
         >
             <SequencerPanel :embedded="true" />

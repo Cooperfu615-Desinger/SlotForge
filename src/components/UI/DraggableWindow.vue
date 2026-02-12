@@ -7,6 +7,7 @@ const props = defineProps<{
     initialY: number
     width?: string
     zIndex?: number
+    resizable?: boolean // Optional: enable resize functionality
 }>()
 
 const emit = defineEmits<{
@@ -117,10 +118,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div 
+    <div 
     ref="windowRef"
     class="draggable-window"
-    :class="{ collapsed: isCollapsed }"
+    :class="{ collapsed: isCollapsed, resizable: props.resizable }"
     :style="{ 
         left: position.x + 'px', 
         top: position.y + 'px',
@@ -153,10 +154,13 @@ onUnmounted(() => {
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); /* shadow-xl */
     display: flex;
     flex-direction: column;
-    overflow: auto;
+    overflow: hidden;
     transition: width 0.2s, height 0.2s, box-shadow 0.2s;
-    
-    /* Resize functionality */
+}
+
+/* Resize functionality - only applied when resizable prop is true */
+.draggable-window.resizable {
+    overflow: auto;
     resize: both;
     min-width: 600px;
     min-height: 300px;
@@ -220,8 +224,8 @@ onUnmounted(() => {
     border-radius: 3px;
 }
 
-/* Resize handle visual indicator */
-.draggable-window::after {
+/* Resize handle visual indicator - only shown when resizable */
+.draggable-window.resizable::after {
     content: '';
     position: absolute;
     bottom: 0;
