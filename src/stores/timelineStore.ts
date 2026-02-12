@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { SPEED_PRESETS, type SpeedMode, useGameStore } from './gameStore'
 
 export interface TimelineBlock {
@@ -28,6 +28,14 @@ export const useTimelineStore = defineStore('timeline', () => {
     const currentTime = ref(0)
     const totalDuration = ref(5000) // Default view range 5s
     const isPlaying = ref(false)
+    const zoomLevel = ref(1.0) // Zoom level: 0.5 to 2.0
+
+    // Computed: Pixels per millisecond for timeline positioning
+    const pxPerMs = computed(() => {
+        // Base scale: 1000px for totalDuration at zoom 1.0
+        const baseWidth = 1000
+        return (baseWidth / totalDuration.value) * zoomLevel.value
+    })
 
     const tracks = ref<TimelineTrack[]>([
         { id: 'global', label: 'Global' },
@@ -180,6 +188,8 @@ export const useTimelineStore = defineStore('timeline', () => {
         isPlaying,
         tracks,
         blocks,
+        zoomLevel,
+        pxPerMs,
         setTime,
         generateFromPreset,
         reset,

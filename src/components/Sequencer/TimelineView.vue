@@ -23,25 +23,25 @@ const ticks = computed(() => {
         return {
             time,
             label: (time / 1000).toFixed(1) + 's',
-            left: (time / totalMs) * 100 + '%'
+            left: time * store.pxPerMs // Pixel-based positioning
         }
     })
 })
 
 // --- Block Rendering ---
 const getBlockStyle = (block: any) => {
-    const left = (block.start / store.totalDuration) * 100
-    const width = (block.duration / store.totalDuration) * 100
+    const left = block.start * store.pxPerMs
+    const width = block.duration * store.pxPerMs
     return {
-        left: `${left}%`,
-        width: `${width}%`,
+        left: `${left}px`,
+        width: `${width}px`,
         backgroundColor: block.color
     }
 }
 
 // --- Playhead ---
 const playheadLeft = computed(() => {
-    return (store.currentTime / store.totalDuration) * 100 + '%'
+    return store.currentTime * store.pxPerMs + 'px'
 })
 
 // --- Playhead Dragging ---
@@ -75,8 +75,7 @@ const updatePlayheadPosition = (event: MouseEvent) => {
     
     const rect = rulerRef.value.getBoundingClientRect()
     const x = event.clientX - rect.left
-    const percentage = Math.max(0, Math.min(1, x / rect.width))
-    const newTime = percentage * store.totalDuration
+    const newTime = x / store.pxPerMs
     
     store.setTime(newTime)
     gameStore.seekTo(newTime)
@@ -98,11 +97,10 @@ const startResize = (event: MouseEvent, blockId: string, currentDuration: number
 }
 
 const onResize = (event: MouseEvent) => {
-    if (!resizingBlockId.value || !rulerRef.value) return
+    if (!resizingBlockId.value) return
     
     const deltaX = event.clientX - resizeStartX.value
-    const rect = rulerRef.value.getBoundingClientRect()
-    const deltaTime = (deltaX / rect.width) * store.totalDuration
+    const deltaTime = deltaX / store.pxPerMs
     
     const newDuration = resizeStartDuration.value + deltaTime
     store.updateBlockDuration(resizingBlockId.value, newDuration)
@@ -126,12 +124,12 @@ const stopResize = () => {
             <div class="w-32 flex-shrink-0 border-r border-gray-200 h-full bg-white"></div>
             
             <!-- Ruler Lane -->
-            <div ref="rulerRef" class="flex-1 h-full relative min-w-[1000px] cursor-pointer" @mousedown="startDrag">
+            <div ref="rulerRef" class="flex-1 h-full relative cursor-pointer" :style="{ width: (store.totalDuration * store.pxPerMs) + 'px' }" @mousedown="startDrag">
                 <div 
                     v-for="tick in ticks" 
                     :key="tick.time"
                     class="absolute top-0 h-full border-l border-gray-300 pl-1 text-[9px] text-gray-400 select-none pointer-events-none"
-                    :style="{ left: tick.left }"
+                    :style="{ left: tick.left + 'px' }"
                 >
                     {{ tick.label }}
                 </div>
@@ -145,6 +143,20 @@ const stopResize = () => {
                         <path d="M0 0 L10 0 L5 8 Z" />
                     </svg>
                 </div>
+            </div>
+            
+            <!-- Zoom Control -->
+            <div class="absolute top-0 right-4 h-full flex items-center gap-2 bg-white px-2 z-30">
+                <span class="text-[10px] text-gray-500 font-medium">ZOOM</span>
+                <input 
+                    type="range" 
+                    min="0.5" 
+                    max="2.0" 
+                    step="0.1"
+                    v-model.number="store.zoomLevel"
+                    class="w-24 h-1 accent-blue-500 cursor-pointer"
+                />
+                <span class="text-[10px] text-gray-600 font-mono w-8">{{ store.zoomLevel.toFixed(1) }}x</span>
             </div>
         </div>
 
@@ -179,13 +191,13 @@ const stopResize = () => {
                 </div>
 
                 <!-- Right Lane (Timeline) -->
-                <div class="flex-1 h-full relative min-w-[1000px]">
+                <div class="flex-1 h-full relative" :style="{ width: (store.totalDuration * store.pxPerMs) + 'px' }">
                     <!-- Grid Lines matching ruler -->
                     <div 
                         v-for="tick in ticks" 
                         :key="`grid-${tick.time}`"
                         class="absolute top-0 bottom-0 border-l border-gray-100 h-full pointer-events-none"
-                        :style="{ left: tick.left }"
+                        :style="{ left: tick.left + 'px' }"
                     ></div>
 
                     <!-- Blocks -->

@@ -153,8 +153,13 @@ onUnmounted(() => {
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); /* shadow-xl */
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: auto;
     transition: width 0.2s, height 0.2s, box-shadow 0.2s;
+    
+    /* Resize functionality */
+    resize: both;
+    min-width: 600px;
+    min-height: 300px;
 }
 
 .draggable-window:active {
@@ -213,5 +218,18 @@ onUnmounted(() => {
 .window-body::-webkit-scrollbar-thumb {
     background-color: #d1d5db;
     border-radius: 3px;
+}
+
+/* Resize handle visual indicator */
+.draggable-window::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 16px;
+    height: 16px;
+    background: linear-gradient(135deg, transparent 50%, #9ca3af 50%);
+    cursor: nwse-resize;
+    pointer-events: none;
 }
 </style>
