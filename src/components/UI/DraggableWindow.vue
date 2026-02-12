@@ -125,7 +125,7 @@ onUnmounted(() => {
     :style="{ 
         left: position.x + 'px', 
         top: position.y + 'px',
-        width: isCollapsed ? '200px' : (props.width || '300px'),
+        width: isCollapsed ? 'auto' : (props.width || '300px'),
         zIndex: props.zIndex || 50
     }"
     @mousedown="handleFocus"
@@ -164,6 +164,13 @@ onUnmounted(() => {
     resize: both;
     min-width: 600px;
     min-height: 300px;
+}
+
+/* Remove min constraints when collapsed to allow auto-sizing */
+.draggable-window.resizable.collapsed {
+    min-width: 0;
+    min-height: 0;
+    resize: none;
 }
 
 .draggable-window:active {
