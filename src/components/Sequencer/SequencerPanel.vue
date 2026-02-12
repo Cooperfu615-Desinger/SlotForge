@@ -176,6 +176,25 @@ defineProps<{
                 <button class="btn" @click="triggerWayFX">Way</button>
             </div>
         </div>
+
+        <!-- Spacer to push ZOOM to the right -->
+        <div style="flex: 1;"></div>
+
+        <!-- Group D: Zoom Control -->
+        <div class="tool-group">
+            <div class="group-label">ZOOM</div>
+            <div class="btn-row">
+                <input 
+                    type="range" 
+                    min="0.5" 
+                    max="2.0" 
+                    step="0.1"
+                    v-model.number="timelineStore.zoomLevel"
+                    class="zoom-slider"
+                />
+                <span class="zoom-value">{{ timelineStore.zoomLevel.toFixed(1) }}x</span>
+            </div>
+        </div>
     </div>
 
     <!-- TIMELINE -->
@@ -380,7 +399,6 @@ defineProps<{
     font-size: 12px;
     font-weight: 700;
     color: #111827;
-    font-family: 'Monaco', 'Courier New', monospace;
 }
 
 .track-headers {
@@ -458,5 +476,56 @@ defineProps<{
     min-width: 1000px;
     background-image: linear-gradient(90deg, #f3f4f6 1px, transparent 1px);
     background-size: 50px 100%;
+}
+
+/* --- ZOOM SLIDER --- */
+.zoom-slider {
+    width: 100px;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #e5e7eb;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+}
+
+.zoom-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: #3b82f6;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.zoom-slider::-webkit-slider-thumb:hover {
+    background: #2563eb;
+    transform: scale(1.1);
+}
+
+.zoom-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: #3b82f6;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.zoom-slider::-moz-range-thumb:hover {
+    background: #2563eb;
+    transform: scale(1.1);
+}
+
+.zoom-value {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    min-width: 32px;
+    text-align: right;
 }
 </style>

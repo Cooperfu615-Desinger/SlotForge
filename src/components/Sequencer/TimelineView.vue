@@ -144,20 +144,6 @@ const stopResize = () => {
                     </svg>
                 </div>
             </div>
-            
-            <!-- Zoom Control -->
-            <div class="absolute top-0 right-4 h-full flex items-center gap-2 bg-white px-2 z-30">
-                <span class="text-[10px] text-gray-500 font-medium">ZOOM</span>
-                <input 
-                    type="range" 
-                    min="0.5" 
-                    max="2.0" 
-                    step="0.1"
-                    v-model.number="store.zoomLevel"
-                    class="w-24 h-1 accent-blue-500 cursor-pointer"
-                />
-                <span class="text-[10px] text-gray-600 font-mono w-8">{{ store.zoomLevel.toFixed(1) }}x</span>
-            </div>
         </div>
 
         <!-- Tracks -->
