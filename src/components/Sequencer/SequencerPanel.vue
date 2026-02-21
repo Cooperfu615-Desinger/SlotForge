@@ -5,6 +5,7 @@ import { useManifestStore } from '../../stores/manifest'
 import { useTimelineStore } from '../../stores/timelineStore'
 import TimelineView from './TimelineView.vue'
 import gsap from 'gsap' // Using GSAP for ticker as requested
+import { generateSpecMarkdown, generateCocosJSON } from '../../utils/exporter'
 
 const gameStore = useGameStore()
 const manifestStore = useManifestStore()
@@ -68,6 +69,37 @@ const updateWinDuration = (e: Event) => {
   if (!isNaN(val)) {
     gameStore.winDuration = val * 1000 // Convert to ms
   }
+}
+
+// --- Export Actions ---
+const exportMarkdown = () => {
+  generateSpecMarkdown(
+    {
+      speedMode: gameStore.currentSpeedMode,
+      preset: gameStore.currentPreset,
+      winDuration: gameStore.winDuration,
+      currentLines: gameStore.currentLines,
+    },
+    {
+      blocks: timelineStore.blocks,
+      totalDuration: timelineStore.totalDuration,
+    }
+  )
+}
+
+const exportCocosJSON = () => {
+  generateCocosJSON(
+    {
+      speedMode: gameStore.currentSpeedMode,
+      preset: gameStore.currentPreset,
+      winDuration: gameStore.winDuration,
+      currentLines: gameStore.currentLines,
+    },
+    {
+      blocks: timelineStore.blocks,
+      totalDuration: timelineStore.totalDuration,
+    }
+  )
 }
 
 // --- Playback Synchronization ---
@@ -174,6 +206,17 @@ defineProps<{
             <div class="btn-row">
                 <button class="btn" @click="triggerLineFX">Line</button>
                 <button class="btn" @click="triggerWayFX">Way</button>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Group E: Export -->
+        <div class="tool-group">
+            <div class="group-label">EXPORT</div>
+            <div class="btn-row">
+                <button class="btn" @click="exportMarkdown" title="匯出 Markdown 規格書 (企劃)">📄 匯出 MD</button>
+                <button class="btn btn-cocos" @click="exportCocosJSON" title="匯出 Cocos Creator JSON (工程)">⚙️ 匯出 JSON</button>
             </div>
         </div>
 
@@ -301,6 +344,21 @@ defineProps<{
     background-color: #4b5563; /* gray-600 */
     color: #ffffff;
     border-color: #374151;
+}
+
+/* Cocos Creator JSON export button – dark green tech color */
+.btn.btn-cocos {
+    background-color: #14532d; /* green-900 */
+    color: #86efac;             /* green-300 */
+    border-color: #166534;      /* green-800 */
+    font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+    letter-spacing: 0.2px;
+}
+
+.btn.btn-cocos:hover {
+    background-color: #166534; /* green-800 */
+    border-color: #15803d;     /* green-700 */
+    color: #bbf7d0;            /* green-200 */
 }
 
 .segmented-control {
