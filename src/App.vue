@@ -42,6 +42,7 @@ const bringToFront = (key: 'templates' | 'inspector' | 'sequencer') => {
 const isPanning = ref(false)
 const panOffset = ref({ x: 0, y: 0 })
 const dragStart = ref({ x: 0, y: 0 })
+const isMouseDown = ref(false)
 
 const handleMouseDown = (e: MouseEvent) => {
     // Check if target is interactive (window or slider)
@@ -50,7 +51,7 @@ const handleMouseDown = (e: MouseEvent) => {
         return
     }
 
-    isPanning.value = true
+    isMouseDown.value = true
     dragStart.value = { 
         x: e.clientX - panOffset.value.x, 
         y: e.clientY - panOffset.value.y 
@@ -58,16 +59,32 @@ const handleMouseDown = (e: MouseEvent) => {
 }
 
 const handleMouseMove = (e: MouseEvent) => {
-    if (!isPanning.value) return
+    if (!isMouseDown.value) return
     
-    panOffset.value = {
-        x: e.clientX - dragStart.value.x,
-        y: e.clientY - dragStart.value.y
+    if (!isPanning.value) {
+        // Calculate raw movement
+        const currentPanX = e.clientX - dragStart.value.x
+        const currentPanY = e.clientY - dragStart.value.y
+        const dx = currentPanX - panOffset.value.x
+        const dy = currentPanY - panOffset.value.y
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+            isPanning.value = true
+        }
+    }
+
+    if (isPanning.value) {
+        panOffset.value = {
+            x: e.clientX - dragStart.value.x,
+            y: e.clientY - dragStart.value.y
+        }
     }
 }
 
 const stopPanning = () => {
-    isPanning.value = false
+    isMouseDown.value = false
+    setTimeout(() => {
+        isPanning.value = false
+    }, 0)
 }
 
 </script>
