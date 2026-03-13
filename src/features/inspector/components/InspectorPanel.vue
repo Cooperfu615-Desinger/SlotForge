@@ -1,0 +1,107 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useManifestStore } from '../../../stores/manifest'
+import { useGameStore } from '../../../stores/gameStore'
+
+const store = useManifestStore()
+const gameStore = useGameStore()
+
+const selectedElement = computed(() => {
+  if (!store.selectedElementId) return null
+  return store.manifest.layout_elements.find((el) => el.id === store.selectedElementId)
+})
+</script>
+
+<template>
+  <div class="h-full flex flex-col bg-white">
+    <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+      <div class="flex items-center justify-between">
+        <label class="text-sm text-gray-700 flex items-center gap-2 cursor-pointer">
+          <span>顯示網格</span>
+          <span class="text-xs text-gray-400">(20×20px)</span>
+        </label>
+        <input
+          type="checkbox"
+          v-model="gameStore.showGrid"
+          class="w-4 h-4 text-cyan-600 rounded focus:ring-2 focus:ring-cyan-500 cursor-pointer"
+        />
+      </div>
+    </div>
+
+    <div v-if="selectedElement" class="p-4 space-y-4 overflow-y-auto flex-1">
+      <div class="group">
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">元件 ID</label>
+        <div class="text-lg font-mono text-gray-900 break-all">{{ selectedElement.id }}</div>
+      </div>
+
+      <div class="group">
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">資源來源</label>
+        <div class="mt-1 p-2 bg-gray-100 rounded text-sm text-gray-600 break-all font-mono">
+          {{ selectedElement.asset_src || 'No Asset Configured' }}
+        </div>
+        <div
+          v-if="selectedElement.asset_src"
+          class="mt-2 border border-gray-200 rounded p-1 bg-checkered h-20 flex items-center justify-center"
+        >
+          <img :src="selectedElement.asset_src" class="max-h-full max-w-full object-contain" alt="Preview" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">類型</label>
+          <div class="text-gray-900 text-sm">{{ selectedElement.type }}</div>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">圖層層級 (Z-Index)</label>
+          <div class="text-gray-900 text-sm">{{ selectedElement.z_index }}</div>
+        </div>
+      </div>
+
+      <div class="bg-gray-50 rounded p-3 border border-gray-200">
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-2">空間座標</label>
+        <div class="grid grid-cols-2 gap-2 text-sm font-mono">
+          <div class="flex justify-between">
+            <span class="text-gray-400">X:</span>
+            <span>{{ selectedElement.rect_landscape.x }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-400">Y:</span>
+            <span>{{ selectedElement.rect_landscape.y }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-400">W:</span>
+            <span>{{ selectedElement.rect_landscape.w }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-400">H:</span>
+            <span>{{ selectedElement.rect_landscape.h }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-else class="flex-1 flex flex-col items-center justify-center text-gray-400 p-8 text-center">
+      <svg class="w-12 h-12 mb-2 opacity-20" fill="currentColor" viewBox="0 0 20 20">
+        <path
+          fill-rule="evenodd"
+          d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+          clip-rule="evenodd"
+        />
+      </svg>
+      <p class="text-sm">請選擇元件以檢視屬性</p>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.bg-checkered {
+  background-image:
+    linear-gradient(45deg, #e5e7eb 25%, transparent 25%),
+    linear-gradient(-45deg, #e5e7eb 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e5e7eb 75%),
+    linear-gradient(-45deg, transparent 75%, #e5e7eb 75%);
+  background-size: 10px 10px;
+  background-position: 0 0, 0 5px, 5px -5px, -5px 0;
+}
+</style>

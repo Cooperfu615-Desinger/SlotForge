@@ -19,4 +19,4 @@ export const TEMPLATES: Record<string, TemplateConfig> = {
   megaways_6: tplMegaways6,
 }
 
-export const DEFAULT_CONFIG = TEMPLATES[DEFAULT_TEMPLATE_ID]
+export const DEFAULT_CONFIG = TEMPLATES[DEFAULT_TEMPLATE_ID]!

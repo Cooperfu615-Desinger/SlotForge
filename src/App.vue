@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { NConfigProvider, type GlobalThemeOverrides, NMessageProvider } from 'naive-ui'
 import DeviceContainer from './components/DeviceContainer.vue'
 import GameRenderer from './components/GameRenderer.vue'
-import Sidebar from './components/Sidebar/Sidebar.vue'
 import TopNavBar from './components/TopNavBar.vue'
 import DraggableWindow from './components/UI/DraggableWindow.vue'
-import SequencerPanel from './components/Sequencer/SequencerPanel.vue'
 import ZoomSlider from './components/UI/ZoomSlider.vue' // Import ZoomSlider
 import WinPresentationLayer from './components/Overlays/WinPresentationLayer.vue'
+import Sidebar from './features/inspector/components/Sidebar.vue'
+import SequencerPanel from './features/sequencer/components/SequencerPanel.vue'
+import { useCanvasPanZoom } from './features/workbench/composables/useCanvasPanZoom'
+import { useWindowLayerManager } from './features/workbench/composables/useWindowLayerManager'
 
 const lightTheme: GlobalThemeOverrides = {
   common: {
@@ -17,76 +18,15 @@ const lightTheme: GlobalThemeOverrides = {
   },
 }
 
-// Global Zoom State
-const previewScale = ref(1.0)
+const { previewScale, isPanning, handleMouseDown, handleMouseMove, stopPanning, deviceTransformStyle } =
+  useCanvasPanZoom()
+const { zIndices, bringToFront } = useWindowLayerManager()
 
 // Initial Positions (Calculated once on setup)
 const inspectorInitialX = window.innerWidth - 340
 const templateInitialX = 20
 const sequencerInitialX = window.innerWidth / 2 - 550
 const sequencerInitialY = window.innerHeight - 300
-
-// Z-Index Management
-const zIndices = ref({
-    templates: 50,
-    inspector: 50,
-    sequencer: 50
-})
-
-const bringToFront = (key: 'templates' | 'inspector' | 'sequencer') => {
-    const maxZ = Math.max(zIndices.value.templates, zIndices.value.inspector, zIndices.value.sequencer)
-    zIndices.value[key] = maxZ + 1
-}
-
-// Canvas Panning State
-const isPanning = ref(false)
-const panOffset = ref({ x: 0, y: 0 })
-const dragStart = ref({ x: 0, y: 0 })
-const isMouseDown = ref(false)
-
-const handleMouseDown = (e: MouseEvent) => {
-    // Check if target is interactive (window or slider)
-    const target = e.target as HTMLElement
-    if (target.closest('.draggable-window') || target.closest('.zoom-slider')) {
-        return
-    }
-
-    isMouseDown.value = true
-    dragStart.value = { 
-        x: e.clientX - panOffset.value.x, 
-        y: e.clientY - panOffset.value.y 
-    }
-}
-
-const handleMouseMove = (e: MouseEvent) => {
-    if (!isMouseDown.value) return
-    
-    if (!isPanning.value) {
-        // Calculate raw movement
-        const currentPanX = e.clientX - dragStart.value.x
-        const currentPanY = e.clientY - dragStart.value.y
-        const dx = currentPanX - panOffset.value.x
-        const dy = currentPanY - panOffset.value.y
-        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
-            isPanning.value = true
-        }
-    }
-
-    if (isPanning.value) {
-        panOffset.value = {
-            x: e.clientX - dragStart.value.x,
-            y: e.clientY - dragStart.value.y
-        }
-    }
-}
-
-const stopPanning = () => {
-    isMouseDown.value = false
-    setTimeout(() => {
-        isPanning.value = false
-    }, 0)
-}
-
 </script>
 
 <template>
@@ -106,11 +46,7 @@ const stopPanning = () => {
         <ZoomSlider v-model="previewScale" />
 
         <DeviceContainer
-            :style="{ 
-                transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${previewScale})`, 
-                transition: isPanning ? 'none' : 'transform 0.1s ease-out',
-                pointerEvents: isPanning ? 'none' : 'auto'
-            }"
+            :style="deviceTransformStyle"
         >
             <GameRenderer />
             <WinPresentationLayer />

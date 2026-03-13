@@ -15,7 +15,7 @@ const props = defineProps<{
 
 const gameStore = useGameStore()
 const manifestStore = useManifestStore()
-const reelEngine = useReelEngine({
+const { visibleSymbols, getImage, getSelectedSymbolIdForIndex } = useReelEngine({
   reelId: props.reelId,
   symbolWidth: props.symbolWidth,
   symbolHeight: props.symbolHeight,
@@ -27,7 +27,7 @@ const handleSymbolClick = (index: number) => {
   // Only allow selection in Inspector Mode
   if (gameStore.isSequencerEnabled) return
 
-  const symbolId = reelEngine.getSelectedSymbolIdForIndex(index)
+  const symbolId = getSelectedSymbolIdForIndex(index)
   if (symbolId) {
     manifestStore.setSelected(symbolId)
     console.log(`[ReelColumn] Selected Symbol: ${symbolId}`)
@@ -45,7 +45,7 @@ const handleSymbolClick = (index: number) => {
     }
   }">
     <!-- 渲染符號 -->
-    <template v-for="(symbol, index) in reelEngine.visibleSymbols" :key="symbol.key">
+    <template v-for="(symbol, index) in visibleSymbols" :key="symbol.key">
       <!-- 圖片層 (總是存在，透過 visible 控制顯示) -->
       <v-image
         :config="{
@@ -53,8 +53,8 @@ const handleSymbolClick = (index: number) => {
           y: symbol.y + symbol.offsetY,
           width: symbol.displayW,
           height: symbol.displayH,
-          image: reelEngine.getImage(symbol.assetPath),
-          visible: !!reelEngine.getImage(symbol.assetPath)
+          image: getImage(symbol.assetPath),
+          visible: !!getImage(symbol.assetPath)
         }"
         @click="handleSymbolClick(index)"
         @tap="handleSymbolClick(index)"
@@ -62,7 +62,7 @@ const handleSymbolClick = (index: number) => {
       
       <!-- Fallback 層 (圖片未載入時顯示) -->
       <v-group 
-        :config="{ visible: !reelEngine.getImage(symbol.assetPath) }"
+        :config="{ visible: !getImage(symbol.assetPath) }"
         @click="handleSymbolClick(index)"
         @tap="handleSymbolClick(index)"
       >
@@ -91,7 +91,7 @@ const handleSymbolClick = (index: number) => {
       <!-- Selection Highlight (Cyan Border) -->
       <!-- Only show if this logical position matches the selected ID -->
       <v-rect 
-        v-if="manifestStore.selectedElementId === reelEngine.getSelectedSymbolIdForIndex(index)" 
+        v-if="manifestStore.selectedElementId === getSelectedSymbolIdForIndex(index)" 
         :config="{
           x: 0,
           y: symbol.y,
