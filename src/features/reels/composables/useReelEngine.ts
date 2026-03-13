@@ -4,6 +4,7 @@ import { useReelController } from '../../../composables/useReelController'
 import { useForgeStore } from '../../../stores/forgeStore'
 import { useGameStore } from '../../../stores/gameStore'
 import { useManifestStore } from '../../../stores/manifest'
+import { toCanonicalAssetSlot } from '../../assets/utils/assetNaming'
 
 interface UseReelEngineOptions {
   reelId: number
@@ -193,7 +194,7 @@ export const useReelEngine = (options: UseReelEngineOptions) => {
 
       const match = assetPath.match(/\/([^/]+)\.(png|jpg|jpeg|webp|svg)$/i)
       if (match?.[1]) {
-        const customAsset = forgeStore.getAsset(match[1])
+        const customAsset = forgeStore.getAsset(toCanonicalAssetSlot(match[1]))
         if (customAsset) {
           assetPath = customAsset.url
           displayW = customAsset.displayW ?? displayW

@@ -4,6 +4,7 @@ import type { LayoutElement } from '../features/manifest/types'
 import { useManifestStore } from '../stores/manifest'
 import { useGameStore } from '../stores/gameStore'
 import { useForgeStore } from '../stores/forgeStore'
+import { extractAssetId, toCanonicalAssetSlot } from '../features/assets/utils/assetNaming'
 
 const props = defineProps<{
   element: LayoutElement
@@ -19,14 +20,13 @@ const isError = ref(false)
 // Extract asset ID from asset_src path
 const assetId = computed(() => {
   if (!props.element.asset_src) return null
-  const match = props.element.asset_src.match(/\/([^/]+)\.(png|jpg|jpeg|webp|svg)$/i)
-  return match?.[1] || null
+  return extractAssetId(props.element.asset_src)
 })
 
 // Check if custom asset exists
 const customAsset = computed(() => {
   if (!assetId.value) return null
-  return forgeStore.getAsset(assetId.value)
+  return forgeStore.getAsset(toCanonicalAssetSlot(assetId.value))
 })
 
 // Determine if this element is selected

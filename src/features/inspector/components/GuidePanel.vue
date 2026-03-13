@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useManifestStore } from '../../../stores/manifest'
+import { assetNamingCategories, assetNamingExamples, assetNamingRules } from '../../assets/content/assetNamingSpec'
 
 const manifestStore = useManifestStore()
+const showAssetNamingSpec = ref(false)
 
 interface TemplateInfo {
   title: string
@@ -123,6 +125,69 @@ const currentInfo = computed(() => {
             {{ ref }}
           </li>
         </ul>
+      </section>
+
+      <section>
+        <div class="flex items-center justify-between mb-2">
+          <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">資源命名規範</h4>
+          <button
+            @click="showAssetNamingSpec = !showAssetNamingSpec"
+            class="px-2 py-1 text-xs font-semibold rounded border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+          >
+            {{ showAssetNamingSpec ? '收合規範' : '查看規範' }}
+          </button>
+        </div>
+
+        <div v-if="showAssetNamingSpec" class="p-3 bg-gray-50 rounded-lg border border-gray-100 space-y-4">
+          <div>
+            <div class="text-xs font-bold text-gray-500 mb-1">格式</div>
+            <div class="font-mono text-xs text-gray-700">{category}_{usage_or_suffix_or_index}.ext</div>
+          </div>
+
+          <div>
+            <div class="text-xs font-bold text-gray-500 mb-1">規則</div>
+            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+              <li v-for="rule in assetNamingRules" :key="rule">{{ rule }}</li>
+            </ul>
+          </div>
+
+          <div>
+            <div class="text-xs font-bold text-gray-500 mb-1">常用前綴</div>
+            <div class="flex flex-wrap gap-2">
+              <span
+                v-for="category in assetNamingCategories"
+                :key="category"
+                class="px-2 py-0.5 text-xs font-mono bg-white border border-gray-200 rounded text-gray-700"
+              >
+                {{ category }}
+              </span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-3">
+            <div>
+              <div class="text-xs font-bold text-green-600 mb-1">正確範例</div>
+              <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                <li v-for="example in assetNamingExamples.correct" :key="example">
+                  <span class="font-mono">{{ example }}</span>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-red-500 mb-1">錯誤範例</div>
+              <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                <li v-for="example in assetNamingExamples.incorrect" :key="example">
+                  <span class="font-mono">{{ example }}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="text-xs text-gray-500 leading-relaxed">
+            SlotForge 內部會以前端 / Creator 命名規範作為標準資源槽位名稱。
+            使用者上傳圖片時不需要先改檔名，系統會自動綁定到對應槽位。
+          </div>
+        </div>
       </section>
     </div>
   </div>

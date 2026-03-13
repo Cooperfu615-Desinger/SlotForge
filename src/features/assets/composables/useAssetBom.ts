@@ -1,8 +1,11 @@
 import { computed } from 'vue'
 import { useManifestStore } from '../../../stores/manifest'
+import { extractAssetId, resolveAssetSlotNaming } from '../utils/assetNaming'
 
 export interface AssetBomEntry {
   id: string
+  legacyId: string
+  slotKey: string
   specWidth: number
   specHeight: number
 }
@@ -21,12 +24,6 @@ const REQUIRED_SYMBOL_IDS = [
 ]
 
 const REQUIRED_WIN_IDS = ['win_small', 'win_big', 'win_mega', 'win_super', 'win_epic']
-
-const extractAssetId = (assetSrc: string) => {
-  const match = assetSrc.match(/\/([^/]+)\.(png|jpg|jpeg|webp|svg)$/i)
-  return match?.[1] ?? null
-}
-
 const getSortRank = (id: string) => {
   if (id.startsWith('win_')) return 0
   if (id.startsWith('sym_h')) return 1
@@ -47,9 +44,12 @@ export const useAssetBom = () => {
 
       const assetId = extractAssetId(element.asset_src)
       if (!assetId || uniqueAssets.has(assetId)) return
+      const naming = resolveAssetSlotNaming(assetId)
 
       uniqueAssets.set(assetId, {
-        id: assetId,
+        id: naming.slotKey,
+        legacyId: naming.legacyId,
+        slotKey: naming.slotKey,
         specWidth: element.rect_landscape.w,
         specHeight: element.rect_landscape.h,
       })
@@ -57,15 +57,20 @@ export const useAssetBom = () => {
 
     const referenceSymbol =
       Array.from(uniqueAssets.values()).find((asset) => asset.id.startsWith('sym_')) ?? {
-        id: 'sym_default',
+        id: 'symbol_default',
+        legacyId: 'sym_default',
+        slotKey: 'symbol_default',
         specWidth: 120,
         specHeight: 120,
       }
 
     REQUIRED_SYMBOL_IDS.forEach((id) => {
       if (!uniqueAssets.has(id)) {
+        const naming = resolveAssetSlotNaming(id)
         uniqueAssets.set(id, {
-          id,
+          id: naming.slotKey,
+          legacyId: naming.legacyId,
+          slotKey: naming.slotKey,
           specWidth: referenceSymbol.specWidth,
           specHeight: referenceSymbol.specHeight,
         })
@@ -74,8 +79,11 @@ export const useAssetBom = () => {
 
     REQUIRED_WIN_IDS.forEach((id) => {
       if (!uniqueAssets.has(id)) {
+        const naming = resolveAssetSlotNaming(id)
         uniqueAssets.set(id, {
-          id,
+          id: naming.slotKey,
+          legacyId: naming.legacyId,
+          slotKey: naming.slotKey,
           specWidth: 600,
           specHeight: 300,
         })

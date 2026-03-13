@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { useForgeStore } from '../../../stores/forgeStore'
 import { useAssetBom } from '../composables/useAssetBom'
+import { matchesAssetSlotUpload } from '../utils/assetNaming'
 
 const forgeStore = useForgeStore()
 const { assetBOM } = useAssetBom()
 
-const handleSingleUpload = async (assetId: string, event: Event) => {
+const handleSingleUpload = async (slotKey: string, event: Event) => {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
 
   try {
-    await forgeStore.uploadAsset(assetId, file)
+    await forgeStore.uploadAsset(slotKey, file)
   } catch (error) {
     alert(`Failed to upload: ${error}`)
   } finally {
@@ -26,19 +27,23 @@ const handleBatchUpload = async (event: Event) => {
 
   let uploadCount = 0
   for (const file of Array.from(files)) {
-    const filenameWithoutExt = file.name.replace(/\.[^/.]+$/, '')
-    const matchingAsset = assetBOM.value.find((asset) => asset.id === filenameWithoutExt)
+    const matchingAsset = assetBOM.value.find((asset) =>
+      matchesAssetSlotUpload(file.name, {
+        legacyId: asset.legacyId,
+        slotKey: asset.slotKey,
+      })
+    )
     if (!matchingAsset) continue
 
     try {
-      await forgeStore.uploadAsset(matchingAsset.id, file)
+      await forgeStore.uploadAsset(matchingAsset.slotKey, file)
       uploadCount++
     } catch (error) {
       console.error(`Failed to upload ${file.name}:`, error)
     }
   }
 
-  alert(`批次上傳完成：已匹配 ${uploadCount}/${files.length} 個檔案`)
+  alert(`批次上傳完成：已自動對應 ${uploadCount}/${files.length} 個檔案到標準資源槽位`)
   input.value = ''
 }
 
@@ -67,13 +72,13 @@ const downloadScreenshot = () => {
   link.click()
 }
 
-const getAssetStatus = (assetId: string) => {
-  const customAsset = forgeStore.getAsset(assetId)
+const getAssetStatus = (slotKey: string) => {
+  const customAsset = forgeStore.getAsset(slotKey)
   return customAsset ? '自訂' : '系統預設'
 }
 
-const getSizeWarning = (assetId: string, specWidth: number, specHeight: number) => {
-  const customAsset = forgeStore.getAsset(assetId)
+const getSizeWarning = (slotKey: string, specWidth: number, specHeight: number) => {
+  const customAsset = forgeStore.getAsset(slotKey)
   if (!customAsset) return null
 
   if (customAsset.width !== specWidth || customAsset.height !== specHeight) {
@@ -83,43 +88,43 @@ const getSizeWarning = (assetId: string, specWidth: number, specHeight: number) 
   return null
 }
 
-const updateSize = (assetId: string, type: 'w' | 'h', value: string) => {
+const updateSize = (slotKey: string, type: 'w' | 'h', value: string) => {
   const numVal = parseInt(value)
   if (isNaN(numVal)) return
 
-  const customAsset = forgeStore.getAsset(assetId)
+  const customAsset = forgeStore.getAsset(slotKey)
   if (!customAsset) return
 
-  const currentW = customAsset.displayW ?? assetBOM.value.find((a) => a.id === assetId)?.specWidth ?? 0
-  const currentH = customAsset.displayH ?? assetBOM.value.find((a) => a.id === assetId)?.specHeight ?? 0
+  const currentW = customAsset.displayW ?? assetBOM.value.find((a) => a.slotKey === slotKey)?.specWidth ?? 0
+  const currentH = customAsset.displayH ?? assetBOM.value.find((a) => a.slotKey === slotKey)?.specHeight ?? 0
 
   if (type === 'w') {
-    forgeStore.updateAssetSize(assetId, numVal, currentH)
+    forgeStore.updateAssetSize(slotKey, numVal, currentH)
   } else {
-    forgeStore.updateAssetSize(assetId, currentW, numVal)
+    forgeStore.updateAssetSize(slotKey, currentW, numVal)
   }
 }
 
-const updateOffset = (assetId: string, type: 'x' | 'y', value: string) => {
+const updateOffset = (slotKey: string, type: 'x' | 'y', value: string) => {
   const numVal = parseInt(value)
   if (isNaN(numVal)) return
 
-  const customAsset = forgeStore.getAsset(assetId)
+  const customAsset = forgeStore.getAsset(slotKey)
   if (!customAsset) return
 
   const currentX = customAsset.offsetX ?? 0
   const currentY = customAsset.offsetY ?? 0
 
   if (type === 'x') {
-    forgeStore.updateAssetOffset(assetId, numVal, currentY)
+    forgeStore.updateAssetOffset(slotKey, numVal, currentY)
   } else {
-    forgeStore.updateAssetOffset(assetId, currentX, numVal)
+    forgeStore.updateAssetOffset(slotKey, currentX, numVal)
   }
 }
 
-const getDisplaySize = (assetId: string) => {
-  const customAsset = forgeStore.getAsset(assetId)
-  const spec = assetBOM.value.find((a) => a.id === assetId)
+const getDisplaySize = (slotKey: string) => {
+  const customAsset = forgeStore.getAsset(slotKey)
+  const spec = assetBOM.value.find((a) => a.slotKey === slotKey)
 
   return {
     w: customAsset?.displayW ?? spec?.specWidth ?? 0,
@@ -127,8 +132,8 @@ const getDisplaySize = (assetId: string) => {
   }
 }
 
-const getDisplayOffset = (assetId: string) => {
-  const customAsset = forgeStore.getAsset(assetId)
+const getDisplayOffset = (slotKey: string) => {
+  const customAsset = forgeStore.getAsset(slotKey)
   return {
     x: customAsset?.offsetX ?? 0,
     y: customAsset?.offsetY ?? 0,
@@ -141,13 +146,14 @@ const getDisplayOffset = (assetId: string) => {
     <div class="p-4 border-b border-gray-200 bg-gray-50">
       <h2 class="font-bold text-gray-700">素材管理器</h2>
       <p class="text-xs text-gray-500 mt-1">管理當前模版素材 (共 {{ assetBOM.length }} 項)</p>
+      <p class="text-[11px] text-gray-400 mt-1">單張上傳不需檔名相同，系統會直接綁定到你操作的標準資源槽位。</p>
     </div>
 
     <div class="p-3 border-b border-gray-100 bg-gray-50 flex gap-2">
       <label class="flex-1 cursor-pointer">
         <input type="file" multiple accept="image/*" @change="handleBatchUpload" class="hidden" />
         <div class="px-3 py-2 bg-white text-gray-700 border border-gray-300 text-sm font-semibold rounded hover:bg-gray-50 transition-colors text-center shadow-sm">
-          批次上傳
+          批次上傳（可自動對應）
         </div>
       </label>
       <button
@@ -169,27 +175,29 @@ const getDisplayOffset = (assetId: string) => {
           <span
             :class="[
               'text-xs px-2 py-0.5 rounded font-semibold border',
-              getAssetStatus(asset.id) === '自訂'
+              getAssetStatus(asset.slotKey) === '自訂'
                 ? 'bg-gray-100 text-gray-900 border-gray-300'
                 : 'bg-gray-50 text-gray-400 border-gray-200',
             ]"
           >
-            {{ getAssetStatus(asset.id) }}
+            {{ getAssetStatus(asset.slotKey) }}
           </span>
         </div>
 
         <div class="text-xs text-gray-500 mb-2">
+          <div><span class="font-semibold">標準槽位:</span> <span class="font-mono">{{ asset.slotKey }}</span></div>
+          <div><span class="font-semibold">舊命名參考:</span> <span class="font-mono">{{ asset.legacyId }}</span></div>
           <span class="font-semibold">建議尺寸:</span> {{ asset.specWidth }}×{{ asset.specHeight }}
-          <div v-if="getSizeWarning(asset.id, asset.specWidth, asset.specHeight)" class="text-yellow-600 font-semibold mt-1">
-            {{ getSizeWarning(asset.id, asset.specWidth, asset.specHeight) }}
+          <div v-if="getSizeWarning(asset.slotKey, asset.specWidth, asset.specHeight)" class="text-yellow-600 font-semibold mt-1">
+            {{ getSizeWarning(asset.slotKey, asset.specWidth, asset.specHeight) }}
           </div>
         </div>
 
-        <div v-if="getAssetStatus(asset.id) === '自訂'" class="mb-3 p-2 bg-gray-50 rounded border border-gray-100">
+        <div v-if="getAssetStatus(asset.slotKey) === '自訂'" class="mb-3 p-2 bg-gray-50 rounded border border-gray-100">
           <div class="flex items-center gap-2 mb-2">
             <span class="text-xs font-bold text-gray-500">尺寸調整:</span>
             <button
-              @click="forgeStore.resetAssetSize(asset.id)"
+              @click="forgeStore.resetAssetSize(asset.slotKey)"
               class="text-[10px] px-1.5 py-0.5 bg-white border border-gray-200 rounded text-gray-500 hover:text-red-500 hover:border-red-200 transition-colors"
             >
               ↺ 重置
@@ -200,8 +208,8 @@ const getDisplayOffset = (assetId: string) => {
               <label class="text-xs text-gray-400 font-mono">寬</label>
               <input
                 type="number"
-                :value="getDisplaySize(asset.id).w"
-                @input="(e) => updateSize(asset.id, 'w', (e.target as HTMLInputElement).value)"
+                :value="getDisplaySize(asset.slotKey).w"
+                @input="(e) => updateSize(asset.slotKey, 'w', (e.target as HTMLInputElement).value)"
                 class="w-full px-1 py-1 text-xs border border-gray-200 rounded text-center font-mono focus:border-cyan-500 outline-none"
               />
             </div>
@@ -209,8 +217,8 @@ const getDisplayOffset = (assetId: string) => {
               <label class="text-xs text-gray-400 font-mono">高</label>
               <input
                 type="number"
-                :value="getDisplaySize(asset.id).h"
-                @input="(e) => updateSize(asset.id, 'h', (e.target as HTMLInputElement).value)"
+                :value="getDisplaySize(asset.slotKey).h"
+                @input="(e) => updateSize(asset.slotKey, 'h', (e.target as HTMLInputElement).value)"
                 class="w-full px-1 py-1 text-xs border border-gray-200 rounded text-center font-mono focus:border-cyan-500 outline-none"
               />
             </div>
@@ -219,7 +227,7 @@ const getDisplayOffset = (assetId: string) => {
           <div class="flex items-center gap-2 mb-2 mt-2 pt-2 border-t border-gray-100">
             <span class="text-xs font-bold text-gray-500">偏移調整:</span>
             <button
-              @click="forgeStore.resetAssetOffset(asset.id)"
+              @click="forgeStore.resetAssetOffset(asset.slotKey)"
               class="text-[10px] px-1.5 py-0.5 bg-white border border-gray-200 rounded text-gray-500 hover:text-red-500 hover:border-red-200 transition-colors"
             >
               ↺ 重置
@@ -230,8 +238,8 @@ const getDisplayOffset = (assetId: string) => {
               <label class="text-xs text-gray-400 font-mono">X</label>
               <input
                 type="number"
-                :value="getDisplayOffset(asset.id).x"
-                @input="(e) => updateOffset(asset.id, 'x', (e.target as HTMLInputElement).value)"
+                :value="getDisplayOffset(asset.slotKey).x"
+                @input="(e) => updateOffset(asset.slotKey, 'x', (e.target as HTMLInputElement).value)"
                 class="w-full px-1 py-1 text-xs border border-gray-200 rounded text-center font-mono focus:border-cyan-500 outline-none"
               />
             </div>
@@ -239,8 +247,8 @@ const getDisplayOffset = (assetId: string) => {
               <label class="text-xs text-gray-400 font-mono">Y</label>
               <input
                 type="number"
-                :value="getDisplayOffset(asset.id).y"
-                @input="(e) => updateOffset(asset.id, 'y', (e.target as HTMLInputElement).value)"
+                :value="getDisplayOffset(asset.slotKey).y"
+                @input="(e) => updateOffset(asset.slotKey, 'y', (e.target as HTMLInputElement).value)"
                 class="w-full px-1 py-1 text-xs border border-gray-200 rounded text-center font-mono focus:border-cyan-500 outline-none"
               />
             </div>
@@ -248,9 +256,9 @@ const getDisplayOffset = (assetId: string) => {
         </div>
 
         <label class="block cursor-pointer">
-          <input type="file" accept="image/*" @change="(e) => handleSingleUpload(asset.id, e)" class="hidden" />
+          <input type="file" accept="image/*" @change="(e) => handleSingleUpload(asset.slotKey, e)" class="hidden" />
           <div class="px-3 py-1.5 bg-white text-gray-700 text-xs font-semibold rounded hover:bg-gray-50 transition-colors text-center border border-gray-300">
-            更換圖片
+            上傳到槽位
           </div>
         </label>
       </div>

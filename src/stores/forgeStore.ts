@@ -6,6 +6,7 @@ export interface CustomAsset {
     width: number        // Original image width
     height: number       // Original image height
     filename: string     // Original filename
+    slotKey: string      // Canonical internal asset slot
     displayW?: number    // Custom display width (optional override)
     displayH?: number    // Custom display height (optional override)
     offsetX?: number     // Custom offset X (optional override)
@@ -15,23 +16,24 @@ export interface CustomAsset {
 export const useForgeStore = defineStore('forge', () => {
     const customAssets = ref<Record<string, CustomAsset>>({})
 
-    const uploadAsset = async (assetId: string, file: File): Promise<void> => {
+    const uploadAsset = async (slotKey: string, file: File): Promise<void> => {
         return new Promise((resolve, reject) => {
             const blobUrl = URL.createObjectURL(file)
             const img = new Image()
 
             img.onload = () => {
-                customAssets.value[assetId] = {
+                customAssets.value[slotKey] = {
                     url: blobUrl,
                     width: img.naturalWidth,
                     height: img.naturalHeight,
                     filename: file.name,
+                    slotKey,
                     displayW: undefined,
                     displayH: undefined,
                     offsetX: undefined,
                     offsetY: undefined
                 }
-                console.log(`[ForgeStore] Asset uploaded: ${assetId} (${img.naturalWidth}x${img.naturalHeight})`)
+                console.log(`[ForgeStore] Asset uploaded to slot: ${slotKey} (${img.naturalWidth}x${img.naturalHeight})`)
                 resolve()
             }
 
@@ -49,36 +51,36 @@ export const useForgeStore = defineStore('forge', () => {
         console.log('[ForgeStore] All custom assets reset')
     }
 
-    const updateAssetSize = (assetId: string, width: number, height: number) => {
-        if (customAssets.value[assetId]) {
-            customAssets.value[assetId].displayW = width
-            customAssets.value[assetId].displayH = height
+    const updateAssetSize = (slotKey: string, width: number, height: number) => {
+        if (customAssets.value[slotKey]) {
+            customAssets.value[slotKey].displayW = width
+            customAssets.value[slotKey].displayH = height
         }
     }
 
-    const resetAssetSize = (assetId: string) => {
-        if (customAssets.value[assetId]) {
-            customAssets.value[assetId].displayW = undefined
-            customAssets.value[assetId].displayH = undefined
+    const resetAssetSize = (slotKey: string) => {
+        if (customAssets.value[slotKey]) {
+            customAssets.value[slotKey].displayW = undefined
+            customAssets.value[slotKey].displayH = undefined
         }
     }
 
-    const updateAssetOffset = (assetId: string, x: number, y: number) => {
-        if (customAssets.value[assetId]) {
-            customAssets.value[assetId].offsetX = x
-            customAssets.value[assetId].offsetY = y
+    const updateAssetOffset = (slotKey: string, x: number, y: number) => {
+        if (customAssets.value[slotKey]) {
+            customAssets.value[slotKey].offsetX = x
+            customAssets.value[slotKey].offsetY = y
         }
     }
 
-    const resetAssetOffset = (assetId: string) => {
-        if (customAssets.value[assetId]) {
-            customAssets.value[assetId].offsetX = undefined
-            customAssets.value[assetId].offsetY = undefined
+    const resetAssetOffset = (slotKey: string) => {
+        if (customAssets.value[slotKey]) {
+            customAssets.value[slotKey].offsetX = undefined
+            customAssets.value[slotKey].offsetY = undefined
         }
     }
 
-    const getAsset = (assetId: string) => {
-        return customAssets.value[assetId] || null
+    const getAsset = (slotKey: string) => {
+        return customAssets.value[slotKey] || null
     }
 
     return {
