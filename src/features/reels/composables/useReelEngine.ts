@@ -191,7 +191,7 @@ export const useReelEngine = (options: UseReelEngineOptions) => {
       let customOffsetX = 0
       let customOffsetY = 0
 
-      const match = assetPath.match(/\/([^\/]+)\.(png|jpg|jpeg|webp|svg)$/i)
+      const match = assetPath.match(/\/([^/]+)\.(png|jpg|jpeg|webp|svg)$/i)
       if (match?.[1]) {
         const customAsset = forgeStore.getAsset(match[1])
         if (customAsset) {

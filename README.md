@@ -133,11 +133,14 @@ This helps bridge prototype decisions into implementation-facing documentation.
 
 ```text
 src/
+  features/
+    assets/
+    inspector/
+    manifest/
+    reels/
+    sequencer/
+    workbench/
   components/
-    Overlays/
-    Sequencer/
-    Sidebar/
-    UI/
   composables/
   stores/
   utils/
@@ -149,18 +152,18 @@ docs/
 Key files:
 關鍵檔案：
 
-- `src/App.vue`: workbench shell and floating window layout
-- `src/App.vue`：工作台主框架與浮動視窗布局
-- `src/components/GameRenderer.vue`: stage and non-symbol scene rendering
-- `src/components/GameRenderer.vue`：舞台與非符號場景渲染
-- `src/components/ReelArea.vue`: reel region rendering
-- `src/components/ReelArea.vue`：滾輪區域渲染
-- `src/stores/manifest.ts`: template loading and manifest generation
-- `src/stores/manifest.ts`：模板載入與 manifest 生成
-- `src/stores/gameStore.ts`: runtime game state, speed presets, win demo logic
-- `src/stores/gameStore.ts`：遊戲狀態、速度預設與贏分演出邏輯
-- `src/stores/timelineStore.ts`: timeline blocks and playback view model
-- `src/stores/timelineStore.ts`：timeline 區塊與播放視圖模型
+- `src/App.vue`: workbench shell composition
+- `src/App.vue`：工作台主框架組裝層
+- `src/features/manifest/services/sceneBuilder.ts`: template-to-scene construction
+- `src/features/manifest/services/sceneBuilder.ts`：模板到場景的建構邏輯
+- `src/features/reels/composables/useReelEngine.ts`: reel runtime orchestration
+- `src/features/reels/composables/useReelEngine.ts`：滾輪執行期控制核心
+- `src/features/sequencer/components/SequencerPanel.vue`: sequencer interface
+- `src/features/sequencer/components/SequencerPanel.vue`：時序控制面板
+- `src/stores/gameStore.ts`: shared gameplay-facing runtime state
+- `src/stores/gameStore.ts`：共享遊戲執行狀態
+- `src/stores/timelineStore.ts`: shared timeline editing state
+- `src/stores/timelineStore.ts`：共享時間軸編輯狀態
 - `src/utils/exporter.ts`: Markdown and JSON export helpers
 - `src/utils/exporter.ts`：Markdown 與 JSON 匯出工具
 
@@ -195,6 +198,13 @@ npm run dev
 npm run build
 ```
 
+### Run full verification
+### 執行完整驗證
+
+```bash
+npm run verify
+```
+
 ### Preview production build
 ### 預覽正式版本
 
@@ -207,10 +217,18 @@ npm run preview
 
 - `npm run dev`: start the Vite development server
 - `npm run dev`：啟動 Vite 開發伺服器
+- `npm run typecheck`: run TypeScript and Vue type checks
+- `npm run typecheck`：執行 TypeScript 與 Vue 型別檢查
+- `npm run lint`: run static lint checks with Oxlint
+- `npm run lint`：使用 Oxlint 執行靜態檢查
+- `npm run test:run`: run smoke tests with Vitest
+- `npm run test:run`：使用 Vitest 執行 smoke tests
 - `npm run build`: run type checking and create a production build
 - `npm run build`：執行型別檢查並產生正式版建置
 - `npm run preview`: preview the built app locally
 - `npm run preview`：本機預覽建置結果
+- `npm run verify`: run typecheck, lint, test, and build in sequence
+- `npm run verify`：依序執行型別檢查、靜態檢查、測試與建置
 
 ## Documentation
 ## 文件
@@ -224,6 +242,10 @@ Additional project docs are available in [`docs/`](./docs):
 - `SLOTFORGE_DATA_CONTRACT.md`：manifest 與資料契約設計
 - `SLOTFORGE_ROADMAP_V3.md`: phased roadmap and acceptance targets
 - `SLOTFORGE_ROADMAP_V3.md`：分階段 roadmap 與驗收目標
+- `ARCHITECTURE.md`: current feature-oriented architecture map
+- `ARCHITECTURE.md`：目前 feature-oriented 架構地圖
+- `DEVELOPMENT_RULES.md`: development guardrails for future changes
+- `DEVELOPMENT_RULES.md`：後續開發規範與守則
 - `DEV_AGENT.md`: development agent notes
 - `DEV_AGENT.md`：開發代理說明
 - `QA_AGENT.md`: QA and review notes
@@ -235,10 +257,14 @@ Additional project docs are available in [`docs/`](./docs):
 This repository includes a GitHub Actions workflow for deploying the built app to GitHub Pages on pushes to `main`.
 此倉庫已配置 GitHub Actions，會在推送到 `main` 後自動建置並部署到 GitHub Pages。
 
+It also includes a CI workflow that runs verification checks on pull requests and pushes.
+另外也已配置 CI workflow，會在 pull request 與 push 時執行驗證流程。
+
 Workflow file:
 流程檔案：
 
 - `.github/workflows/deploy.yml`
+- `.github/workflows/ci.yml`
 
 ## Current Status
 ## 目前狀態

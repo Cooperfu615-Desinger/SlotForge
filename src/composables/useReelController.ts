@@ -1,6 +1,6 @@
 import gsap from 'gsap'
 import { ref, onUnmounted } from 'vue'
-import type { SpeedPreset } from '../stores/gameStore'
+import type { SpeedPreset } from '../features/reels/config/speedPresets'
 
 export interface ReelConfig {
     reelId: number

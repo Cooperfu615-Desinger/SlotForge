@@ -23,7 +23,7 @@ const REQUIRED_SYMBOL_IDS = [
 const REQUIRED_WIN_IDS = ['win_small', 'win_big', 'win_mega', 'win_super', 'win_epic']
 
 const extractAssetId = (assetSrc: string) => {
-  const match = assetSrc.match(/\/([^\/]+)\.(png|jpg|jpeg|webp|svg)$/i)
+  const match = assetSrc.match(/\/([^/]+)\.(png|jpg|jpeg|webp|svg)$/i)
   return match?.[1] ?? null
 }
 

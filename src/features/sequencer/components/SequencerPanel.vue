@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch } from 'vue'
 import gsap from 'gsap'
-import { useGameStore, type SpeedMode } from '../../../stores/gameStore'
+import type { SpeedMode } from '../../reels/config/speedPresets'
+import { useGameStore } from '../../../stores/gameStore'
 import { useManifestStore } from '../../../stores/manifest'
 import { useTimelineStore } from '../../../stores/timelineStore'
 import { generateSpecMarkdown, generateCocosJSON } from '../../../utils/exporter'

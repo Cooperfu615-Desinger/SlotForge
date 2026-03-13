@@ -19,7 +19,7 @@ const isError = ref(false)
 // Extract asset ID from asset_src path
 const assetId = computed(() => {
   if (!props.element.asset_src) return null
-  const match = props.element.asset_src.match(/\/([^\/]+)\.(png|jpg|jpeg|webp|svg)$/i)
+  const match = props.element.asset_src.match(/\/([^/]+)\.(png|jpg|jpeg|webp|svg)$/i)
   return match?.[1] || null
 })
 

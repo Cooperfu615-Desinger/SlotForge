@@ -1,4 +1,4 @@
-import type { SpeedPreset, SpeedMode } from '../stores/gameStore'
+import type { SpeedPreset, SpeedMode } from '../features/reels/config/speedPresets'
 import type { TimelineBlock } from '../stores/timelineStore'
 
 // ─── Shared Types ──────────────────────────────────────────────────────────────

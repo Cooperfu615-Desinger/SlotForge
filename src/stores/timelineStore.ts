@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { SPEED_PRESETS, type SpeedMode, useGameStore } from './gameStore'
+import type { SpeedMode } from '../features/reels/config/speedPresets'
+import { buildTimelineBlocksFromPreset, getTimelineTotalDuration } from '../features/sequencer/services/timelineMapper'
+import { useGameStore } from './gameStore'
 
 export interface TimelineBlock {
     id: string
@@ -56,85 +58,14 @@ export const useTimelineStore = defineStore('timeline', () => {
     }
 
     const generateFromPreset = (mode: SpeedMode) => {
-        // Clear existing
-        blocks.value = []
+        const gameStore = useGameStore()
         currentTime.value = 0
 
-        const preset = SPEED_PRESETS[mode]
+        const preset = gameStore.getPreset(mode)
         if (!preset) return
 
-        const baseId = `seq-${Date.now()}`
-
-        // Get phase durations
-        const spinDuration = preset.spinDuration
-        const decelerateDuration = preset.decelerateDuration
-        const alignDuration = preset.alignDuration
-        const settleDuration = preset.settleDuration
-        const interval = preset.intervalBetweenReels // P5
-
-        // Generate blocks for each of the 5 reels
-        for (let reelIndex = 0; reelIndex < 5; reelIndex++) {
-            const reelNum = reelIndex + 1
-            const trackId = `reel${reelNum}`
-
-            // Calculate stagger offset: (n-1) × P5
-            const staggerOffset = reelIndex * interval
-
-            let currentTimeOffset = staggerOffset
-
-            // Phase 1: Spin (Darker Gray)
-            blocks.value.push({
-                id: `${baseId}-r${reelNum}-spin`,
-                trackId,
-                start: currentTimeOffset,
-                duration: spinDuration,
-                label: 'SPIN',
-                color: '#4b5563', // gray-600
-                phase: 'spin'
-            })
-            currentTimeOffset += spinDuration
-
-            // Phase 2: Decelerate (Medium Gray)
-            blocks.value.push({
-                id: `${baseId}-r${reelNum}-dec`,
-                trackId,
-                start: currentTimeOffset,
-                duration: decelerateDuration,
-                label: 'DEC',
-                color: '#6b7280', // gray-500
-                phase: 'decelerate'
-            })
-            currentTimeOffset += decelerateDuration
-
-            // Phase 3: Align (Light Gray)
-            blocks.value.push({
-                id: `${baseId}-r${reelNum}-aln`,
-                trackId,
-                start: currentTimeOffset,
-                duration: alignDuration,
-                label: 'ALN',
-                color: '#9ca3af', // gray-400
-                phase: 'align'
-            })
-            currentTimeOffset += alignDuration
-
-            // Phase 4: Settle (Lighter Gray)
-            blocks.value.push({
-                id: `${baseId}-r${reelNum}-set`,
-                trackId,
-                start: currentTimeOffset,
-                duration: settleDuration,
-                label: 'SET',
-                color: '#d1d5db', // gray-300
-                textColor: '#374151', // gray-700
-                phase: 'settle'
-            })
-        }
-
-        // Calculate total duration: (4 × P5) + (P1 + P2 + P3 + P4) + padding
-        const totalPhaseDuration = spinDuration + decelerateDuration + alignDuration + settleDuration
-        const totalStagger = 4 * interval
-        totalDuration.value = Math.max(5000, totalStagger + totalPhaseDuration + 1000)
+        blocks.value = buildTimelineBlocksFromPreset(preset)
+        totalDuration.value = getTimelineTotalDuration(preset)
     }
 
     const reset = () => {
