@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { computed, ref, watchEffect, watch } from 'vue'
-import type { LayoutElement } from '../stores/manifest'
+import { computed, ref, watchEffect } from 'vue'
+import type { LayoutElement } from '../features/manifest/types'
 import { useManifestStore } from '../stores/manifest'
 import { useGameStore } from '../stores/gameStore'
 import { useForgeStore } from '../stores/forgeStore'
-import { useReelController } from '../composables/useReelController'
 
 const props = defineProps<{
   element: LayoutElement
@@ -58,43 +57,6 @@ watchEffect(() => {
   }
 })
 
-// ========================================
-// Reel Animation Logic (for Symbol elements only)
-// ========================================
-
-// Determine which reel (column) this symbol belongs to
-const reelId = computed(() => {
-  if (props.element.type !== 'symbol') return null
-  const match = props.element.id.match(/sym_c(\d+)_r\d+/)
-  if (!match || !match[1]) return null
-  return parseInt(match[1]) - 1
-})
-
-// Initialize reel controller if this is a symbol
-const reelController = reelId.value !== null 
-  ? useReelController(
-      {
-        reelId: reelId.value,
-        symbolHeight: 125  // 120px symbol + 5px gap
-      },
-      // Callback when all reels have stopped (triggered by last reel)
-      () => {
-        console.log('[GameElement] All reels stopped, resetting game state')
-        gameStore.stopSpin()
-      }
-    )
-  : null
-
-// Watch game state and trigger animation
-if (reelController) {
-  watch(() => gameStore.gameState, (newState) => {
-    if (newState === 'SPINNING') {
-      console.log(`[Symbol ${props.element.id}] Starting reel animation`)
-      reelController.spin(gameStore.currentPreset)
-    }
-  })
-}
-
 // Main Config with animated Y position and custom asset dimensions
 const config = computed(() => {
   // CRITICAL: Always use the layout element's defined size (Auto-Fit Scaling)
@@ -106,7 +68,7 @@ const config = computed(() => {
   
   return {
     x: rect.value.x + offsetX,
-    y: rect.value.y + (reelController?.offsetY.value || 0) + offsetY,  // Apply animation + custom offset
+    y: rect.value.y + offsetY,
     width: width,
     height: height,
     listening: props.element.listening ?? true,
